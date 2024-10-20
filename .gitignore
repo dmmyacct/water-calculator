@@ -1,0 +1,14 @@
+# Ignore the text file with common Git commands
+GITCOMMANDS.txt
+
+# Node modules, if you're using Node.js
+node_modules/
+
+# Environment files
+.env
+
+# VSCode settings folder
+.vscode/
+
+# MacOS hidden system files
+.DS_Store

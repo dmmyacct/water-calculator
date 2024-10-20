@@ -1,8 +1,11 @@
+/* Default Light Mode styles (existing styles in the file) */
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
     background-color: #f4f4f4;
+    color: #333;
 }
 
 .container {
@@ -32,10 +35,44 @@ th {
     color: white;
 }
 
+button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
 .hidden {
     display: none;
 }
 
 #feedback-message {
     margin-top: 10px;
+}
+
+/* Dark Mode styles */
+
+body.dark-mode {
+    background-color: #121212;
+    color: #f0f0f0;
+}
+
+.container.dark-mode {
+    background-color: #1e1e1e;
+    box-shadow: 0px 0px 20px rgba(255, 255, 255, 0.1);
+}
+
+th.dark-mode {
+    background-color: #333333;
+    color: #f0f0f0;
+}
+
+table.dark-mode, th.dark-mode, td.dark-mode {
+    border: 1px solid #555;
+}
+
+button.dark-mode {
+    background-color: #6c757d;
+    color: #f0f0f0;
 }

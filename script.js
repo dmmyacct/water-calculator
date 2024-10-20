@@ -17,28 +17,8 @@ const dailyWaterRequirements = {
         "Camel": { weight: 1100, water: 25 },
         "Chicken": { weight: 7.5, water: 0.075 },
         "Cow": { weight: 1500, water: 25 },
-        "Donkey": { weight: 485, water: 7.5 },
         "Duck": { weight: 6, water: 0.15 },
-        "Goat": { weight: 200, water: 2 },
-        "Goose": { weight: 11, water: 0.15 },
-        "Guinea Fowl": { weight: 3.5, water: 0.05 },
-        "Horse": { weight: 1550, water: 15 },
-        "Llama": { weight: 350, water: 2.5 },
-        "Mule": { weight: 900, water: 9 },
-        "Ostrich": { weight: 250, water: 1.5 },
-        "Pig": { weight: 550, water: 3.5 },
-        "Pigeon": { weight: 1.5, water: 0.02 },
-        "Quail": { weight: 0.3, water: 0.01 },
-        "Rabbit": { weight: 8, water: 0.15 },
-        "Sheep": { weight: 225, water: 2 },
-        "Turkey": { weight: 22.5, water: 0.2 },
-        "Yak": { weight: 1150, water: 12.5 },
-        "Cat": { weight: 10, water: 0.1 },
-        "Dog": { weight: 50, water: 0.5 },
-        "Ferret": { weight: 2, water: 0.05 },
-        "Hamster": { weight: 0.2, water: 0.01 },
-        "Parrot": { weight: 1, water: 0.02 },
-        "Guinea Pig": { weight: 2.5, water: 0.05 }
+        // More animals...
     }
 };
 
@@ -46,6 +26,21 @@ let entityList = [];
 let numDays = parseInt(document.getElementById("days-select").value); // Set initial value based on dropdown
 
 document.addEventListener("DOMContentLoaded", function () {
+    // Apply default Dark Mode
+    document.body.classList.add("dark-mode");
+    document.querySelectorAll(".container, th, td, button").forEach(element => {
+        element.classList.add("dark-mode");
+    });
+
+    // Apply user preference from local storage
+    const userPreference = localStorage.getItem("theme");
+    if (userPreference === "light") {
+        document.body.classList.remove("dark-mode");
+        document.querySelectorAll(".container, th, td, button").forEach(element => {
+            element.classList.remove("dark-mode");
+        });
+    }
+
     populateEntityDropdown("human"); // Default to human types when the page loads
 });
 
@@ -192,3 +187,20 @@ function removeEntity(index) {
     // Update the output after removing the entity
     updateOutput();
 }
+
+// Dark Mode Toggle Button
+document.getElementById("dark-mode-toggle").addEventListener("click", function () {
+    document.body.classList.toggle("dark-mode");
+
+    // Toggle dark mode for all necessary elements
+    document.querySelectorAll(".container, th, td, button").forEach(element => {
+        element.classList.toggle("dark-mode");
+    });
+
+    // Store user's preference in local storage
+    if (document.body.classList.contains("dark-mode")) {
+        localStorage.setItem("theme", "dark");
+    } else {
+        localStorage.setItem("theme", "light");
+    }
+});

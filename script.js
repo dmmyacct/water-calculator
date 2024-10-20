@@ -129,7 +129,7 @@ function updateOutput() {
         // Placeholder row for empty state
         breakdownBody.innerHTML = `
             <tr>
-                <td colspan="6">No data available</td>
+                <td colspan="7">No data available</td>
             </tr>
         `;
         // Placeholder text for total water requirement
@@ -155,6 +155,7 @@ function updateOutput() {
                 <td>${data.water.toFixed(2)}</td>
                 <td>${dailyWaterNeed.toFixed(2)}</td>
                 <td>${totalForDays.toFixed(2)}</td>
+                <td><button onclick="removeEntity(${index})">Remove</button></td>
             </tr>
         `;
         breakdownBody.innerHTML += row;
@@ -181,5 +182,13 @@ function adjustQuantity(index, change) {
     }
 
     // Update the output after adjusting the quantity
+    updateOutput();
+}
+
+function removeEntity(index) {
+    // Remove the entity at the given index
+    entityList.splice(index, 1);
+
+    // Update the output after removing the entity
     updateOutput();
 }

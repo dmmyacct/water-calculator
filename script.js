@@ -46,13 +46,11 @@ let entityList = [];
 let numDays = parseInt(document.getElementById("days-select").value); // Set initial value based on dropdown
 
 document.addEventListener("DOMContentLoaded", function () {
-    // Apply default Dark Mode
     document.body.classList.add("dark-mode");
     document.querySelectorAll(".container, th, td, button").forEach(element => {
         element.classList.add("dark-mode");
     });
 
-    // Apply user preference from local storage
     const userPreference = localStorage.getItem("theme");
     if (userPreference === "light") {
         document.body.classList.remove("dark-mode");
@@ -71,7 +69,7 @@ document.getElementById("entity-type").addEventListener("change", function () {
 
 function populateEntityDropdown(entityType) {
     const entityNameSelect = document.getElementById("entity-name");
-    entityNameSelect.innerHTML = ''; // Clear the current options
+    entityNameSelect.innerHTML = '';
 
     let data = dailyWaterRequirements[entityType];
     for (const name in data) {
@@ -81,7 +79,7 @@ function populateEntityDropdown(entityType) {
         entityNameSelect.appendChild(option);
     }
 
-    entityNameSelect.classList.remove("hidden"); // Make the dropdown visible
+    entityNameSelect.classList.remove("hidden");
 }
 
 document.getElementById("days-select").addEventListener("change", (event) => {

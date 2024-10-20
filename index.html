@@ -8,11 +8,11 @@
 </head>
 <body>
     <div class="container">
-        <button id="dark-mode-toggle">Toggle Light/Dark Mode</button>
+        <button id="dark-mode-toggle" class="top-right">🌙</button>
         <h1>Water Requirements Calculator</h1>
         
         <div id="input-section">
-            <h3>Number of Days</h3>
+            <h3>Duration</h3>
             <select id="days-select">
                 <option value="3">3 Days</option>
                 <option value="7">7 Days</option>
@@ -39,20 +39,22 @@
         </div>
 
         <div id="output-section">
-            <h2>Total Water Requirement</h2>
+            <h2>Estimated Total Water Requirement</h2>
             <p id="total-water">No entities added yet.</p>
 
-            <h2>Detailed Breakdown</h2>
+            <div class="divider"></div> <!-- Divider between sections -->
+
+            <h2>Water Requirement Breakdown</h2>
             <table id="breakdown-table">
                 <thead>
                     <tr>
                         <th>Category</th>
                         <th>Quantity</th>
                         <th>Average Weight (lbs)</th>
-                        <th>Daily Water Requirement (Gallons)</th>
-                        <th>Total Average Water Need (Daily)</th>
-                        <th>Total Average Water Need (User Selected Days)</th>
-                        <th>Actions</th> <!-- Column for remove button -->
+                        <th>Daily Requirement (Gallons)</th>
+                        <th>Total Need (Daily) (Gallons)</th>
+                        <th>Total Need (Selected Days) (Gallons)</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="breakdown-body">
@@ -62,8 +64,10 @@
                 </tbody>
             </table>
 
+            <div class="divider"></div> <!-- Divider between sections -->
+
             <!-- Updated Supply Tracker to include "(Gallons)" next to Water -->
-            <h2>Supply Tracker</h2>
+            <h2>Resource Supply Tracker</h2>
             <table id="supply-tracker-table">
                 <thead>
                     <tr>

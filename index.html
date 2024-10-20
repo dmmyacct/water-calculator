@@ -13,6 +13,7 @@
         
         <div id="input-section">
             <h3>Duration</h3>
+            <label for="days-select">Select Duration:</label>
             <select id="days-select">
                 <option value="3">3 Days</option>
                 <option value="7">7 Days</option>
@@ -27,11 +28,14 @@
             
             <h3>Add Humans/Animals</h3>
             <div id="entity-input">
+                <label for="entity-type">Type:</label>
                 <select id="entity-type">
                     <option value="human">Human</option>
                     <option value="animal">Animal</option>
                 </select>
+                <label for="entity-name">Name:</label>
                 <select id="entity-name" class="hidden"></select>
+                <label for="entity-quantity">Quantity:</label>
                 <input type="number" id="entity-quantity" placeholder="Enter Quantity" min="1">
                 <button onclick="addEntity()">Add</button>
             </div>
@@ -66,7 +70,6 @@
 
             <div class="divider"></div> <!-- Divider between sections -->
 
-            <!-- Updated Supply Tracker to include "(Gallons)" next to Water -->
             <h2>Resource Supply Tracker</h2>
             <table id="supply-tracker-table">
                 <thead>

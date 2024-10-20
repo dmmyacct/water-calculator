@@ -43,7 +43,7 @@ const dailyWaterRequirements = {
 };
 
 let entityList = [];
-let numDays = parseInt(document.getElementById("days-select").value); // Set initial value based on dropdown
+let numDays = parseInt(document.getElementById("days-select").value);
 
 document.addEventListener("DOMContentLoaded", function () {
     document.body.classList.add("dark-mode");
@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    populateEntityDropdown("human"); // Default to human types when the page loads
+    populateEntityDropdown("human");
 });
 
 document.getElementById("entity-type").addEventListener("change", function () {

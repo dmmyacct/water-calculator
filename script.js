@@ -43,8 +43,9 @@ const dailyWaterRequirements = {
 };
 
 let entityList = [];
-let numDays = 7;
+let numDays = parseInt(document.getElementById("days-select").value); // Set initial value based on dropdown
 
+// Update numDays when the dropdown selection changes
 document.getElementById("days-select").addEventListener("change", (event) => {
     if (event.target.value === "custom") {
         document.getElementById("custom-days").style.display = "inline-block";
@@ -55,13 +56,16 @@ document.getElementById("days-select").addEventListener("change", (event) => {
     }
 });
 
+// Update numDays if custom days are selected
 document.getElementById("custom-days").addEventListener("input", function () {
-    numDays = parseInt(this.value);
-    if (numDays > 0 && numDays <= 365) {
+    let customValue = parseInt(this.value);
+    if (customValue > 0 && customValue <= 365) {
+        numDays = customValue;
         updateOutput();
     }
 });
 
+// Populate the entity dropdown based on selection (human or animal)
 document.getElementById("entity-type").addEventListener("change", function () {
     const entityType = this.value;
     const entityNameSelect = document.getElementById("entity-name");
@@ -98,7 +102,16 @@ function addEntity() {
         feedbackMessage.style.visibility = "visible";
     } else {
         feedbackMessage.style.visibility = "hidden";
-        entityList.push({ type: entityType, name: entityName, quantity: quantity });
+
+        // Check if the entity already exists in the entity list
+        let existingEntity = entityList.find(entity => entity.type === entityType && entity.name === entityName);
+        if (existingEntity) {
+            existingEntity.quantity += quantity;  // Update the quantity if it already exists
+        } else {
+            // Add a new entity to the list if it doesn't exist
+            entityList.push({ type: entityType, name: entityName, quantity: quantity });
+        }
+
         updateOutput();
 
         // Clear quantity field for next input
@@ -112,7 +125,7 @@ function updateOutput() {
 
     let totalWaterDaily = 0;
 
-    entityList.forEach(entity => {
+    entityList.forEach((entity, index) => {
         let data = dailyWaterRequirements[entity.type][entity.name];
         let dailyWaterNeed = data.water * entity.quantity;
         let totalForDays = dailyWaterNeed * numDays;
@@ -121,7 +134,11 @@ function updateOutput() {
         let row = `
             <tr>
                 <td>${entity.name}</td>
-                <td>${entity.quantity}</td>
+                <td>
+                    <button onclick="adjustQuantity(${index}, -1)">-</button>
+                    ${entity.quantity}
+                    <button onclick="adjustQuantity(${index}, 1)">+</button>
+                </td>
                 <td>${data.weight}</td>
                 <td>${data.water}</td>
                 <td>${dailyWaterNeed}</td>
@@ -140,4 +157,17 @@ function updateOutput() {
     // Update the Total Water Requirement display with new verbiage
     document.getElementById("total-water").innerText = 
         `For the selected period of ${numDays} days, you will need a total of ${totalWaterForSelectedDays.toFixed(1)} gallons of water (${totalWaterDaily.toFixed(1)} gallons per day).`;
+}
+
+function adjustQuantity(index, change) {
+    // Adjust the quantity of the entity at the given index
+    entityList[index].quantity += change;
+
+    // If the quantity becomes zero or negative, remove the entity from the list
+    if (entityList[index].quantity <= 0) {
+        entityList.splice(index, 1);
+    }
+
+    // Update the output after adjusting the quantity
+    updateOutput();
 }

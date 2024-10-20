@@ -60,6 +60,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     populateEntityDropdown("human");
+
+    // Print button event
+    document.getElementById("print-button").addEventListener("click", function () {
+        window.print();
+    });
 });
 
 document.getElementById("entity-type").addEventListener("change", function () {

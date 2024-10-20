@@ -1,5 +1,4 @@
 /* Default Light Mode styles */
-
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -23,6 +22,16 @@ body {
     position: absolute;
     top: 20px;
     right: 20px;
+    font-size: 18px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.print-button {
+    position: absolute;
+    top: 20px;
+    right: 70px;
     font-size: 18px;
     background: none;
     border: none;
@@ -74,7 +83,7 @@ input[type="number"] {
     font-size: 14px;
     color: #555;
     margin-bottom: 10px;
-    text-align: left; /* Align left instead of centered */
+    text-align: left;
 }
 
 .subheading {
@@ -90,7 +99,6 @@ input[type="number"] {
 }
 
 /* Dark Mode styles */
-
 body.dark-mode {
     background-color: #121212;
     color: #f0f0f0;

@@ -37,7 +37,7 @@
                 <label for="entity-name">Name:</label>
                 <select id="entity-name" class="hidden"></select>
                 <label for="entity-quantity">Quantity:</label>
-                <input type="number" id="entity-quantity" placeholder="Enter Quantity" min="1">
+                <input type="number" id="entity-quantity" placeholder="Enter Quantity" min="1" value="1">
                 <button onclick="addEntity()">Add</button>
             </div>
             <p id="feedback-message" style="color: red; visibility: hidden;"></p>
@@ -91,7 +91,9 @@
                 </tbody>
             </table>
         </div>
-        
+
+        <!-- Include the data.js file here -->
+        <script src="data.js"></script>
         <script src="script.js"></script>
     </div>
 </body>

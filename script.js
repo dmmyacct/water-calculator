@@ -110,13 +110,14 @@ function updateOutput() {
     let breakdownBody = document.getElementById("breakdown-body");
     breakdownBody.innerHTML = "";
 
-    let totalWater = 0;
+    let totalWaterDaily = 0;
 
     entityList.forEach(entity => {
         let data = dailyWaterRequirements[entity.type][entity.name];
         let dailyWaterNeed = data.water * entity.quantity;
         let totalForDays = dailyWaterNeed * numDays;
 
+        // Add row to the breakdown table
         let row = `
             <tr>
                 <td>${entity.name}</td>
@@ -129,8 +130,14 @@ function updateOutput() {
         `;
         breakdownBody.innerHTML += row;
 
-        totalWater += dailyWaterNeed;
+        // Update total daily water requirement
+        totalWaterDaily += dailyWaterNeed;
     });
 
-    document.getElementById("total-water").innerText = `You will need ${totalWater} gallons of water daily for ${numDays} days.`;
+    // Calculate total water requirement for the entire selected period
+    let totalWaterForSelectedDays = totalWaterDaily * numDays;
+
+    // Update the Total Water Requirement display with new verbiage
+    document.getElementById("total-water").innerText = 
+        `For the selected period of ${numDays} days, you will need a total of ${totalWaterForSelectedDays.toFixed(1)} gallons of water (${totalWaterDaily.toFixed(1)} gallons per day).`;
 }

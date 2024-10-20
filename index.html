@@ -22,7 +22,7 @@
                 <option value="365">365 Days</option>
                 <option value="custom">Custom</option>
             </select>
-            <input type="number" id="custom-days" placeholder="Enter Days (1-365)" style="display:none;">
+            <input type="number" id="custom-days" placeholder="Enter Days (1-365)" style="display:none;" min="1" max="365">
             
             <h3>Add Humans/Animals</h3>
             <div id="entity-input">
@@ -30,8 +30,11 @@
                     <option value="human">Human</option>
                     <option value="animal">Animal</option>
                 </select>
+                <select id="entity-name" class="hidden"></select>
+                <input type="number" id="entity-quantity" placeholder="Enter Quantity" min="1">
                 <button onclick="addEntity()">Add</button>
             </div>
+            <p id="feedback-message" style="color: red; visibility: hidden;"></p>
         </div>
 
         <div id="output-section">

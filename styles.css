@@ -18,6 +18,7 @@ body {
 table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 20px;
 }
 
 th, td {
@@ -29,4 +30,12 @@ th, td {
 th {
     background-color: #4CAF50;
     color: white;
+}
+
+.hidden {
+    display: none;
+}
+
+#feedback-message {
+    margin-top: 10px;
 }

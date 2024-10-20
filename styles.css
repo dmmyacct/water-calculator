@@ -43,6 +43,13 @@ button {
     cursor: pointer;
 }
 
+input[type="number"] {
+    width: 80px;
+    padding: 5px;
+    margin: 0;
+    box-sizing: border-box;
+}
+
 .hidden {
     display: none;
 }

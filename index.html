@@ -12,7 +12,7 @@
         <h1>Water Requirements Calculator</h1>
         
         <div id="input-section">
-            <h3>Select Number of Days</h3>
+            <h3>Number of Days</h3>
             <select id="days-select">
                 <option value="3">3 Days</option>
                 <option value="7">7 Days</option>
@@ -52,12 +52,35 @@
                         <th>Daily Water Requirement (Gallons)</th>
                         <th>Total Average Water Need (Daily)</th>
                         <th>Total Average Water Need (User Selected Days)</th>
-                        <th>Actions</th> <!-- New column for actions (Remove button) -->
+                        <th>Actions</th> <!-- Column for remove button -->
                     </tr>
                 </thead>
                 <tbody id="breakdown-body">
                     <tr>
                         <td colspan="7">No data available</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Updated Supply Tracker to include "(Gallons)" next to Water -->
+            <h2>Supply Tracker</h2>
+            <table id="supply-tracker-table">
+                <thead>
+                    <tr>
+                        <th>Supply Type</th>
+                        <th>Total Requirement (Units)</th>
+                        <th>Available Supply (Units)</th>
+                        <th>Percentage Fulfilled</th>
+                    </tr>
+                </thead>
+                <tbody id="supply-tracker-body">
+                    <tr>
+                        <td>Water (Gallons)</td>
+                        <td id="total-water-required">0.00</td>
+                        <td>
+                            <input type="number" id="available-water" value="0" min="0" step="1" onchange="updateSupplyFulfilled()">
+                        </td>
+                        <td id="supply-fulfilled-percentage">0%</td>
                     </tr>
                 </tbody>
             </table>

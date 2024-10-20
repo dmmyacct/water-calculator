@@ -45,6 +45,32 @@ const dailyWaterRequirements = {
 let entityList = [];
 let numDays = parseInt(document.getElementById("days-select").value); // Set initial value based on dropdown
 
+document.addEventListener("DOMContentLoaded", function () {
+    populateEntityDropdown("human"); // Default to human types when the page loads
+});
+
+// Update entity type dropdown when selection changes
+document.getElementById("entity-type").addEventListener("change", function () {
+    const entityType = this.value;
+    populateEntityDropdown(entityType);
+});
+
+// Function to populate the entity dropdown based on the type (human or animal)
+function populateEntityDropdown(entityType) {
+    const entityNameSelect = document.getElementById("entity-name");
+    entityNameSelect.innerHTML = ''; // Clear the current options
+
+    let data = dailyWaterRequirements[entityType];
+    for (const name in data) {
+        const option = document.createElement("option");
+        option.value = name;
+        option.text = name;
+        entityNameSelect.appendChild(option);
+    }
+
+    entityNameSelect.classList.remove("hidden"); // Make the dropdown visible
+}
+
 // Update numDays when the dropdown selection changes
 document.getElementById("days-select").addEventListener("change", (event) => {
     if (event.target.value === "custom") {
@@ -63,32 +89,6 @@ document.getElementById("custom-days").addEventListener("input", function () {
         numDays = customValue;
         updateOutput();
     }
-});
-
-// Populate the entity dropdown based on selection (human or animal)
-document.getElementById("entity-type").addEventListener("change", function () {
-    const entityType = this.value;
-    const entityNameSelect = document.getElementById("entity-name");
-
-    entityNameSelect.innerHTML = ''; // Clear the current options
-
-    if (entityType === "human") {
-        for (const name in dailyWaterRequirements.human) {
-            const option = document.createElement("option");
-            option.value = name;
-            option.text = name;
-            entityNameSelect.appendChild(option);
-        }
-    } else if (entityType === "animal") {
-        for (const name in dailyWaterRequirements.animal) {
-            const option = document.createElement("option");
-            option.value = name;
-            option.text = name;
-            entityNameSelect.appendChild(option);
-        }
-    }
-
-    entityNameSelect.classList.remove("hidden"); // Make the dropdown visible
 });
 
 function addEntity() {
@@ -125,12 +125,24 @@ function updateOutput() {
 
     let totalWaterDaily = 0;
 
+    if (entityList.length === 0) {
+        // Placeholder row for empty state
+        breakdownBody.innerHTML = `
+            <tr>
+                <td colspan="6">No data available</td>
+            </tr>
+        `;
+        // Placeholder text for total water requirement
+        document.getElementById("total-water").innerText = "No entities added yet.";
+        return;
+    }
+
     entityList.forEach((entity, index) => {
         let data = dailyWaterRequirements[entity.type][entity.name];
         let dailyWaterNeed = data.water * entity.quantity;
         let totalForDays = dailyWaterNeed * numDays;
 
-        // Add row to the breakdown table
+        // Add row to the breakdown table with rounded values
         let row = `
             <tr>
                 <td>${entity.name}</td>
@@ -140,9 +152,9 @@ function updateOutput() {
                     <button onclick="adjustQuantity(${index}, 1)">+</button>
                 </td>
                 <td>${data.weight}</td>
-                <td>${data.water}</td>
-                <td>${dailyWaterNeed}</td>
-                <td>${totalForDays}</td>
+                <td>${data.water.toFixed(2)}</td>
+                <td>${dailyWaterNeed.toFixed(2)}</td>
+                <td>${totalForDays.toFixed(2)}</td>
             </tr>
         `;
         breakdownBody.innerHTML += row;
@@ -154,9 +166,9 @@ function updateOutput() {
     // Calculate total water requirement for the entire selected period
     let totalWaterForSelectedDays = totalWaterDaily * numDays;
 
-    // Update the Total Water Requirement display with new verbiage
+    // Update the Total Water Requirement display with rounded values
     document.getElementById("total-water").innerText = 
-        `For the selected period of ${numDays} days, you will need a total of ${totalWaterForSelectedDays.toFixed(1)} gallons of water (${totalWaterDaily.toFixed(1)} gallons per day).`;
+        `For the selected period of ${numDays} days, you will need a total of ${totalWaterForSelectedDays.toFixed(2)} gallons of water (${totalWaterDaily.toFixed(2)} gallons per day).`;
 }
 
 function adjustQuantity(index, change) {

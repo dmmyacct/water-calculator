@@ -14,18 +14,19 @@
         
         <div id="input-section">
             <h3>Duration</h3>
-            <label for="days-select">Select Duration:</label>
-            <select id="days-select">
-                <option value="3">3 Days</option>
-                <option value="7">7 Days</option>
-                <option value="30">30 Days</option>
-                <option value="60">60 Days</option>
-                <option value="90">90 Days</option>
-                <option value="180">180 Days</option>
-                <option value="365">365 Days</option>
-                <option value="custom">Custom</option>
-            </select>
-            <input type="number" id="custom-days" placeholder="Enter Days (1-365)" style="display:none;" min="1" max="365">
+            <!-- Duration Selection -->
+            <div id="duration-selection">
+                <label for="time-frame-unit">Select Time Frame:</label>
+                <select id="time-frame-unit">
+                    <option value="hours">Hours</option>
+                    <option value="days" selected>Days</option>
+                    <option value="weeks">Weeks</option>
+                    <option value="months">Months</option>
+                    <option value="years">Years</option>
+                    <option value="custom">Custom</option>
+                </select>
+                <input type="number" id="time-frame-quantity" placeholder="Enter Quantity" min="1" style="margin-left: 10px;">
+            </div>
             
             <h3>Add Humans/Animals</h3>
             <div id="entity-input">
@@ -34,16 +35,26 @@
                     <option value="human">Human</option>
                     <option value="animal">Animal</option>
                 </select>
-                <label for="entity-name">Name:</label>
+                <label for="entity-name" class="hidden">Name:</label>
                 <select id="entity-name" class="hidden"></select>
                 <label for="entity-quantity">Quantity:</label>
                 <input type="number" id="entity-quantity" placeholder="Enter Quantity" min="1" value="1">
                 <button onclick="addEntity()">Add</button>
             </div>
             <p id="feedback-message" style="color: red; visibility: hidden;"></p>
+            
+            <!-- Measurement Unit Selection -->
+            <h3>Measurement Units</h3>
+            <div id="unit-selection">
+                <label for="measurement-unit">Select Measurement Unit:</label>
+                <select id="measurement-unit">
+                    <option value="gallons" selected>Gallons</option>
+                    <option value="liters">Liters</option>
+                    <option value="cubic_meters">Cubic Meters</option>
+                </select>
+            </div>
         </div>
 
-        <!-- Divider above Water Requirement Breakdown Section -->
         <div class="divider"></div>
 
         <div id="output-section">
@@ -87,6 +98,7 @@
                         <td>Water (Gallons)</td>
                         <td id="total-water-required">0.00</td>
                         <td>
+                            <label for="available-water">Available Water (Gallons):</label>
                             <input type="number" id="available-water" value="0" min="0" step="1" onchange="updateSupplyFulfilled()">
                         </td>
                         <td id="supply-fulfilled-percentage">0%</td>

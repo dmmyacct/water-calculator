@@ -98,6 +98,42 @@ input[type="number"] {
     border-bottom: 1px solid #ccc;
 }
 
+/* New Styles for Enhanced Input Options */
+#duration-selection, #unit-selection {
+    margin-top: 10px;
+}
+
+#duration-selection label, #unit-selection label {
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+#duration-selection select,
+#duration-selection input,
+#unit-selection select {
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+#duration-selection input {
+    width: 150px;
+}
+
+#unit-selection {
+    margin-top: 20px;
+}
+
+#unit-selection label {
+    margin-right: 10px;
+}
+
+#unit-selection select {
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
 /* Dark Mode styles */
 body.dark-mode {
     background-color: #121212;

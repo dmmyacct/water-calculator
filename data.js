@@ -1,3 +1,26 @@
+const dailyRequirements = {
+    human: {
+        "Infant": { weight: 22, water: 0.3, calories: 500 },
+        "Child": { weight: 70, water: 0.5, calories: 1400 },
+        "Teenager Male": { weight: 150, water: 1, calories: 2800 },
+        "Teenager Female": { weight: 125, water: 1, calories: 2200 },
+        "Adult Male": { weight: 190, water: 1, calories: 2500 },
+        "Adult Female": { weight: 160, water: 0.8, calories: 2000 },
+        "Pregnant Female": { weight: 165, water: 1, calories: 2400 },
+        "Elderly Male": { weight: 160, water: 1, calories: 2200 },
+        "Elderly Female": { weight: 140, water: 0.8, calories: 1800 },
+    },
+    animal: {
+        "Dog": { weight: 50, water: 0.5, calories: 700 },
+        "Cat": { weight: 10, water: 0.1, calories: 250 },
+        // Add other animals as needed
+        "Rabbit": { weight: 8, water: 0.15, calories: 150 },
+        "Chicken": { weight: 7.5, water: 0.075, calories: 100 },
+        // ...
+    }
+};
+
+/* 
 const dailyWaterRequirements = {
     human: {
         "Infant": { weight: 22, water: 0.3 },
@@ -41,3 +64,4 @@ const dailyWaterRequirements = {
         "Guinea Pig": { weight: 2.5, water: 0.05 }
     }
 };
+*/

@@ -2,6 +2,7 @@ let entityList = [];
 let numDays = parseInt(document.getElementById("days-select").value);
 
 document.addEventListener("DOMContentLoaded", function () {
+    // Set initial theme
     document.body.classList.add("dark-mode");
     document.querySelectorAll(".container, th, td, button").forEach(element => {
         element.classList.add("dark-mode");
@@ -21,6 +22,10 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("print-button").addEventListener("click", function () {
         window.print();
     });
+
+    // Resource selection event listeners
+    document.getElementById("calculate-water").addEventListener("change", updateOutput);
+    document.getElementById("calculate-food").addEventListener("change", updateOutput);
 });
 
 document.getElementById("entity-type").addEventListener("change", function () {
@@ -32,7 +37,7 @@ function populateEntityDropdown(entityType) {
     const entityNameSelect = document.getElementById("entity-name");
     entityNameSelect.innerHTML = '';
 
-    let data = dailyWaterRequirements[entityType];
+    let data = dailyRequirements[entityType];
     for (const name in data) {
         const option = document.createElement("option");
         option.value = name;
@@ -96,18 +101,24 @@ function updateOutput() {
     breakdownBody.innerHTML = "";
 
     let totalWaterDaily = 0;
+    let totalCaloriesDaily = 0;
 
     if (entityList.length === 0) {
-        breakdownBody.innerHTML = `<tr><td colspan="7">No data available</td></tr>`;
-        document.getElementById("total-water").innerText = "No entities added yet.";
-        updateSupplyTracker(0);
+        breakdownBody.innerHTML = `<tr><td colspan="8">No data available</td></tr>`;
+        document.getElementById("total-resources").innerText = "No entities added yet.";
+        updateSupplyTracker(0, 0);
         return;
     }
 
     entityList.forEach((entity, index) => {
-        let data = dailyWaterRequirements[entity.type][entity.name];
+        let data = dailyRequirements[entity.type][entity.name];
+        if (!data) return;
+
         let dailyWaterNeed = data.water * entity.quantity;
-        let totalForDays = dailyWaterNeed * numDays;
+        let totalWaterForDays = dailyWaterNeed * numDays;
+
+        let dailyCalorieNeed = data.calories * entity.quantity;
+        let totalCaloriesForDays = dailyCalorieNeed * numDays;
 
         let row = `
             <tr>
@@ -118,39 +129,80 @@ function updateOutput() {
                     <button onclick="adjustQuantity(${index}, 1)">+</button>
                 </td>
                 <td>${data.weight}</td>
-                <td>${data.water.toFixed(2)}</td>
-                <td>${dailyWaterNeed.toFixed(2)}</td>
-                <td>${totalForDays.toFixed(2)}</td>
+                <td>${document.getElementById("calculate-water").checked ? data.water.toFixed(2) : 'N/A'}</td>
+                <td>${document.getElementById("calculate-water").checked ? totalWaterForDays.toFixed(2) : 'N/A'}</td>
+                <td>${document.getElementById("calculate-food").checked ? dailyCalorieNeed : 'N/A'}</td>
+                <td>${document.getElementById("calculate-food").checked ? totalCaloriesForDays : 'N/A'}</td>
                 <td><button onclick="removeEntity(${index})">Remove</button></td>
             </tr>
         `;
         breakdownBody.innerHTML += row;
 
-        totalWaterDaily += dailyWaterNeed;
+        if (document.getElementById("calculate-water").checked) {
+            totalWaterDaily += dailyWaterNeed;
+        }
+        if (document.getElementById("calculate-food").checked) {
+            totalCaloriesDaily += dailyCalorieNeed;
+        }
     });
 
     let totalWaterForSelectedDays = totalWaterDaily * numDays;
-    document.getElementById("total-water").innerText = 
-        `For the selected period of ${numDays} days, you will need a total of ${totalWaterForSelectedDays.toFixed(2)} gallons of water (${totalWaterDaily.toFixed(2)} gallons per day).`;
+    let totalCaloriesForSelectedDays = totalCaloriesDaily * numDays;
 
-    updateSupplyTracker(totalWaterForSelectedDays);
+    let outputMessage = `For the selected period of ${numDays} days, you will need a total of `;
+
+    if (document.getElementById("calculate-water").checked) {
+        outputMessage += `${totalWaterForSelectedDays.toFixed(2)} gallons of water `;
+    }
+
+    if (document.getElementById("calculate-food").checked) {
+        if (document.getElementById("calculate-water").checked) {
+            outputMessage += `and `;
+        }
+        outputMessage += `${totalCaloriesForSelectedDays.toLocaleString()} calories `;
+    }
+
+    outputMessage += `(${document.getElementById("calculate-water").checked ? totalWaterDaily.toFixed(2) : 'N/A'} gallons of water per day, ${document.getElementById("calculate-food").checked ? totalCaloriesDaily.toLocaleString() : 'N/A'} calories per day).`;
+
+    document.getElementById("total-resources").innerText = outputMessage;
+
+    updateSupplyTracker(totalWaterForSelectedDays, totalCaloriesForSelectedDays);
 }
 
-function updateSupplyTracker(totalRequired) {
-    document.getElementById("total-water-required").innerText = totalRequired.toFixed(2);
-    updateSupplyFulfilled();
+function updateSupplyTracker(totalWaterRequired, totalCaloriesRequired) {
+    if (document.getElementById("calculate-water").checked) {
+        document.getElementById("total-water-required").innerText = totalWaterRequired.toFixed(2);
+        updateSupplyFulfilled('water');
+    } else {
+        document.getElementById("total-water-required").innerText = 'N/A';
+        document.getElementById("water-supply-fulfilled").innerText = 'N/A';
+    }
+
+    if (document.getElementById("calculate-food").checked) {
+        document.getElementById("total-food-required").innerText = totalCaloriesRequired.toLocaleString();
+        updateSupplyFulfilled('food');
+    } else {
+        document.getElementById("total-food-required").innerText = 'N/A';
+        document.getElementById("food-supply-fulfilled").innerText = 'N/A';
+    }
 }
 
-function updateSupplyFulfilled() {
-    let totalRequired = parseFloat(document.getElementById("total-water-required").innerText);
-    let availableSupply = parseFloat(document.getElementById("available-water").value) || 0;
+function updateSupplyFulfilled(resource) {
+    let totalRequiredText = document.getElementById(`total-${resource}-required`).innerText;
+    if (totalRequiredText === 'N/A') {
+        document.getElementById(`${resource}-supply-fulfilled`).innerText = 'N/A';
+        return;
+    }
+
+    let totalRequired = parseFloat(totalRequiredText.replace(/,/g, ''));
+    let availableSupply = parseFloat(document.getElementById(`available-${resource}`).value) || 0;
     let percentageFulfilled = (availableSupply / totalRequired) * 100;
 
     if (percentageFulfilled > 100) {
         percentageFulfilled = 100;
     }
 
-    document.getElementById("supply-fulfilled-percentage").innerText = `${percentageFulfilled.toFixed(2)}%`;
+    document.getElementById(`${resource}-supply-fulfilled`).innerText = `${percentageFulfilled.toFixed(2)}%`;
 }
 
 function adjustQuantity(index, change) {

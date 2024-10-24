@@ -2,15 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Water Requirements Calculator</title>
+    <title>Resource Requirements Calculator</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <button id="dark-mode-toggle" class="top-right">🌙</button>
-        <button id="print-button" class="print-button">🖨️ Print</button> <!-- Print Button -->
-        <h1>Water Requirements Calculator</h1>
+        <button id="print-button" class="print-button">🖨️ Print</button>
+        <h1>Resource Requirements Calculator</h1>
         
         <div id="input-section">
             <h3>Duration</h3>
@@ -41,15 +40,20 @@
                 <button onclick="addEntity()">Add</button>
             </div>
             <p id="feedback-message" style="color: red; visibility: hidden;"></p>
+
+            <h3>Select Resources to Calculate</h3>
+            <div id="resource-selection">
+                <label><input type="checkbox" id="calculate-water" checked> Water</label>
+                <label><input type="checkbox" id="calculate-food"> Food</label>
+            </div>
         </div>
 
-        <!-- Divider above Water Requirement Breakdown Section -->
         <div class="divider"></div>
 
         <div id="output-section">
-            <h2>Water Requirement Breakdown</h2>
-            <h4 class="subheading">Estimated Total Water Requirement</h4>
-            <p id="total-water" class="total-water-overview">No entities added yet.</p>
+            <h2>Resource Requirement Breakdown</h2>
+            <h4 class="subheading">Estimated Total Resource Requirements</h4>
+            <p id="total-resources" class="total-resource-overview">No entities added yet.</p>
 
             <table id="breakdown-table">
                 <thead>
@@ -57,15 +61,16 @@
                         <th>Category</th>
                         <th>Quantity</th>
                         <th>Average Weight (lbs)</th>
-                        <th>Daily Requirement (Gallons)</th>
-                        <th>Total Need (Daily) (Gallons)</th>
-                        <th>Total Need (Selected Days) (Gallons)</th>
+                        <th>Daily Water Requirement (Gallons)</th>
+                        <th>Total Water Need (Selected Days) (Gallons)</th>
+                        <th>Daily Calorie Requirement</th>
+                        <th>Total Calorie Need (Selected Days)</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="breakdown-body">
                     <tr>
-                        <td colspan="7">No data available</td>
+                        <td colspan="8">No data available</td>
                     </tr>
                 </tbody>
             </table>
@@ -85,17 +90,25 @@
                 <tbody id="supply-tracker-body">
                     <tr>
                         <td>Water (Gallons)</td>
-                        <td id="total-water-required">0.00</td>
+                        <td id="total-water-required">N/A</td>
                         <td>
-                            <input type="number" id="available-water" value="0" min="0" step="1" onchange="updateSupplyFulfilled()">
+                            <input type="number" id="available-water" value="0" min="0" step="1" onchange="updateSupplyFulfilled('water')">
                         </td>
-                        <td id="supply-fulfilled-percentage">0%</td>
+                        <td id="water-supply-fulfilled">N/A</td>
+                    </tr>
+                    <tr>
+                        <td>Food (Calories)</td>
+                        <td id="total-food-required">N/A</td>
+                        <td>
+                            <input type="number" id="available-food" value="0" min="0" step="100" onchange="updateSupplyFulfilled('food')">
+                        </td>
+                        <td id="food-supply-fulfilled">N/A</td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- Include the data.js file here -->
+        <!-- Include the data.js and script.js files -->
         <script src="data.js"></script>
         <script src="script.js"></script>
     </div>

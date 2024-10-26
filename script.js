@@ -1,234 +1,199 @@
-let entityList = [];
-let numDays = parseInt(document.getElementById("days-select").value);
+const categories = {
+    water: {
+        name: "Water",
+        items: [
+            {
+                name: "Water (gallons)",
+                perAdultPerDay: 1, 
+                perDogPerDay: 1, // 1 gallon per dog per day
+                perCatPerDay: 0.5, // 0.5 gallon per cat per day
+                unit: "gallons"
+            },
+        ]
+    },
+    food: {
+        name: "Food",
+        items: [
+            {
+                name: "Rice (lbs)",
+                perAdultPerDay: 0.625,
+                unit: "lbs"
+            },
+            {
+                name: "Canned Meat (cans)",
+                perAdultPerDay: 0.875,
+                unit: "cans"
+            },
+            {
+                name: "Dog Food (lbs)",
+                perDogPerDay: 2.5, // Approx. 2.5 lbs of food per dog per day
+                unit: "lbs"
+            },
+            {
+                name: "Cat Food (lbs)",
+                perCatPerDay: 0.5, // Approx. 0.5 lbs of food per cat per day
+                unit: "lbs"
+            },
+        ]
+    },
+    medical: {
+        name: "Medical Supplies",
+        items: [
+            {
+                name: "Basic First-Aid Kit",
+                perPerson: 1 / 30,
+                unit: "kits"
+            },
+            {
+                name: "Pet First Aid Kit",
+                perDog: 1 / 30,
+                perCat: 1 / 30,
+                unit: "kits"
+            },
+        ]
+    },
+};
 
-document.addEventListener("DOMContentLoaded", function () {
-    // Set initial theme
-    document.body.classList.add("dark-mode");
-    document.querySelectorAll(".container, th, td, button").forEach(element => {
-        element.classList.add("dark-mode");
-    });
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById('adults').addEventListener('input', updateTable);
+    document.getElementById('children').addEventListener('input', updateTable);
+    document.getElementById('dogs').addEventListener('input', updateTable);
+    document.getElementById('cats').addEventListener('input', updateTable);
+    document.getElementById('duration').addEventListener('change', updateTable);
+    document.getElementById('water').addEventListener('change', updateTable);
+    document.getElementById('food').addEventListener('change', updateTable);
+    document.getElementById('medical').addEventListener('change', updateTable);
 
-    const userPreference = localStorage.getItem("theme");
-    if (userPreference === "light") {
-        document.body.classList.remove("dark-mode");
-        document.querySelectorAll(".container, th, td, button").forEach(element => {
-            element.classList.remove("dark-mode");
+    updateTable();
+});
+
+function getInputValues() {
+    const adults = parseInt(document.getElementById('adults').value) || 0;
+    const children = parseInt(document.getElementById('children').value) || 0;
+    const dogs = parseInt(document.getElementById('dogs').value) || 0;
+    const cats = parseInt(document.getElementById('cats').value) || 0;
+    const duration = parseInt(document.getElementById('duration').value) || 1;
+
+    return { adults, children, dogs, cats, duration };
+}
+
+function getSelectedCategories() {
+    const selected = [];
+    if (document.getElementById('water').checked) selected.push('water');
+    if (document.getElementById('food').checked) selected.push('food');
+    if (document.getElementById('medical').checked) selected.push('medical');
+    return selected;
+}
+
+function updateTable() {
+    const { adults, children, dogs, cats, duration } = getInputValues();
+    const selectedCategories = getSelectedCategories();
+
+    const totalIndividuals = adults + children;
+
+    generateTableHeader(adults, children, dogs, cats);
+
+    let allItems = [];
+    selectedCategories.forEach(categoryKey => {
+        const category = categories[categoryKey];
+        category.items.forEach(item => {
+            allItems.push({
+                name: item.name,
+                perAdult: item.perAdultPerDay ? item.perAdultPerDay * duration : (item.perPerson || 0) * duration,
+                perDog: item.perDogPerDay ? item.perDogPerDay * duration : (item.perDog || 0) * duration,
+                perCat: item.perCatPerDay ? item.perCatPerDay * duration : (item.perCat || 0) * duration,
+                unit: item.unit
+            });
         });
-    }
-
-    populateEntityDropdown("human");
-
-    // Print button event
-    document.getElementById("print-button").addEventListener("click", function () {
-        window.print();
     });
 
-    // Resource selection event listeners
-    document.getElementById("calculate-water").addEventListener("change", updateOutput);
-    document.getElementById("calculate-food").addEventListener("change", updateOutput);
-});
-
-document.getElementById("entity-type").addEventListener("change", function () {
-    const entityType = this.value;
-    populateEntityDropdown(entityType);
-});
-
-function populateEntityDropdown(entityType) {
-    const entityNameSelect = document.getElementById("entity-name");
-    entityNameSelect.innerHTML = '';
-
-    let data = dailyRequirements[entityType];
-    for (const name in data) {
-        const option = document.createElement("option");
-        option.value = name;
-        option.text = name;
-        entityNameSelect.appendChild(option);
-    }
-
-    entityNameSelect.classList.remove("hidden");
+    const consolidatedItems = consolidateItems(allItems);
+    generateTableBody(consolidatedItems, adults, children, dogs, cats);
 }
 
-document.getElementById("days-select").addEventListener("change", (event) => {
-    if (event.target.value === "custom") {
-        document.getElementById("custom-days").style.display = "inline-block";
-    } else {
-        document.getElementById("custom-days").style.display = "none";
-        numDays = parseInt(event.target.value);
-        updateOutput();
-    }
-});
+function generateTableHeader(adults, children, dogs, cats) {
+    const thead = document.querySelector('#supply-table thead tr');
+    thead.innerHTML = '<th>Item</th>';
 
-document.getElementById("custom-days").addEventListener("input", function () {
-    let customValue = parseInt(this.value);
-    if (customValue > 0 && customValue <= 365) {
-        numDays = customValue;
-        updateOutput();
-    }
-});
-
-function addEntity() {
-    let entityType = document.getElementById("entity-type").value;
-    let entityName = document.getElementById("entity-name").value;
-    let quantity = parseInt(document.getElementById("entity-quantity").value);
-    const feedbackMessage = document.getElementById("feedback-message");
-
-    // Ensure the quantity is at least 1
-    if (isNaN(quantity) || quantity < 1) {
-        quantity = 1;
-        document.getElementById("entity-quantity").value = quantity;
+    for (let i = 1; i <= adults; i++) {
+        thead.innerHTML += `<th>Adult ${i}</th>`;
     }
 
-    if (!entityName) {
-        feedbackMessage.innerText = "Please select a valid type and enter a quantity.";
-        feedbackMessage.style.visibility = "visible";
-    } else {
-        feedbackMessage.style.visibility = "hidden";
+    for (let i = 1; i <= children; i++) {
+        thead.innerHTML += `<th>Child ${i}</th>`;
+    }
 
-        let existingEntity = entityList.find(entity => entity.type === entityType && entity.name === entityName);
-        if (existingEntity) {
-            existingEntity.quantity += quantity;
+    for (let i = 1; i <= dogs; i++) {
+        thead.innerHTML += `<th>Dog ${i}</th>`;
+    }
+
+    for (let i = 1; i <= cats; i++) {
+        thead.innerHTML += `<th>Cat ${i}</th>`;
+    }
+
+    thead.innerHTML += '<th>Total Needed</th>';
+}
+
+function consolidateItems(items) {
+    const itemMap = {};
+
+    items.forEach(item => {
+        if (!itemMap[item.name]) {
+            itemMap[item.name] = { ...item };
         } else {
-            entityList.push({ type: entityType, name: entityName, quantity: quantity });
-        }
-
-        updateOutput();
-        document.getElementById("entity-quantity").value = '1'; // Reset the quantity to 1 after adding
-    }
-}
-
-function updateOutput() {
-    let breakdownBody = document.getElementById("breakdown-body");
-    breakdownBody.innerHTML = "";
-
-    let totalWaterDaily = 0;
-    let totalCaloriesDaily = 0;
-
-    if (entityList.length === 0) {
-        breakdownBody.innerHTML = `<tr><td colspan="8">No data available</td></tr>`;
-        document.getElementById("total-resources").innerText = "No entities added yet.";
-        updateSupplyTracker(0, 0);
-        return;
-    }
-
-    entityList.forEach((entity, index) => {
-        let data = dailyRequirements[entity.type][entity.name];
-        if (!data) return;
-
-        let dailyWaterNeed = data.water * entity.quantity;
-        let totalWaterForDays = dailyWaterNeed * numDays;
-
-        let dailyCalorieNeed = data.calories * entity.quantity;
-        let totalCaloriesForDays = dailyCalorieNeed * numDays;
-
-        let row = `
-            <tr>
-                <td>${entity.name}</td>
-                <td>
-                    <button onclick="adjustQuantity(${index}, -1)">-</button>
-                    ${entity.quantity}
-                    <button onclick="adjustQuantity(${index}, 1)">+</button>
-                </td>
-                <td>${data.weight}</td>
-                <td>${document.getElementById("calculate-water").checked ? data.water.toFixed(2) : 'N/A'}</td>
-                <td>${document.getElementById("calculate-water").checked ? totalWaterForDays.toFixed(2) : 'N/A'}</td>
-                <td>${document.getElementById("calculate-food").checked ? dailyCalorieNeed : 'N/A'}</td>
-                <td>${document.getElementById("calculate-food").checked ? totalCaloriesForDays : 'N/A'}</td>
-                <td><button onclick="removeEntity(${index})">Remove</button></td>
-            </tr>
-        `;
-        breakdownBody.innerHTML += row;
-
-        if (document.getElementById("calculate-water").checked) {
-            totalWaterDaily += dailyWaterNeed;
-        }
-        if (document.getElementById("calculate-food").checked) {
-            totalCaloriesDaily += dailyCalorieNeed;
+            itemMap[item.name].perAdult += item.perAdult;
+            itemMap[item.name].perDog += item.perDog;
+            itemMap[item.name].perCat += item.perCat;
         }
     });
 
-    let totalWaterForSelectedDays = totalWaterDaily * numDays;
-    let totalCaloriesForSelectedDays = totalCaloriesDaily * numDays;
+    return Object.values(itemMap);
+}
 
-    let outputMessage = `For the selected period of ${numDays} days, you will need a total of `;
+function generateTableBody(items, adults, children, dogs, cats) {
+    const tbody = document.querySelector('#supply-table tbody');
+    tbody.innerHTML = '';
 
-    if (document.getElementById("calculate-water").checked) {
-        outputMessage += `${totalWaterForSelectedDays.toFixed(2)} gallons of water `;
-    }
+    items.forEach(item => {
+        const row = document.createElement('tr');
 
-    if (document.getElementById("calculate-food").checked) {
-        if (document.getElementById("calculate-water").checked) {
-            outputMessage += `and `;
+        const nameCell = document.createElement('td');
+        nameCell.textContent = `${item.name}`;
+        row.appendChild(nameCell);
+
+        for (let i = 0; i < adults; i++) {
+            const adultCell = document.createElement('td');
+            adultCell.textContent = formatNumber(item.perAdult.toFixed(2));
+            row.appendChild(adultCell);
         }
-        outputMessage += `${totalCaloriesForSelectedDays.toLocaleString()} calories `;
-    }
 
-    outputMessage += `(${document.getElementById("calculate-water").checked ? totalWaterDaily.toFixed(2) : 'N/A'} gallons of water per day, ${document.getElementById("calculate-food").checked ? totalCaloriesDaily.toLocaleString() : 'N/A'} calories per day).`;
+        for (let i = 0; i < children; i++) {
+            const childCell = document.createElement('td');
+            childCell.textContent = formatNumber(item.perAdult.toFixed(2));
+            row.appendChild(childCell);
+        }
 
-    document.getElementById("total-resources").innerText = outputMessage;
+        for (let i = 0; i < dogs; i++) {
+            const dogCell = document.createElement('td');
+            dogCell.textContent = formatNumber(item.perDog.toFixed(2));
+            row.appendChild(dogCell);
+        }
 
-    updateSupplyTracker(totalWaterForSelectedDays, totalCaloriesForSelectedDays);
-}
+        for (let i = 0; i < cats; i++) {
+            const catCell = document.createElement('td');
+            catCell.textContent = formatNumber(item.perCat.toFixed(2));
+            row.appendChild(catCell);
+        }
 
-function updateSupplyTracker(totalWaterRequired, totalCaloriesRequired) {
-    if (document.getElementById("calculate-water").checked) {
-        document.getElementById("total-water-required").innerText = totalWaterRequired.toFixed(2);
-        updateSupplyFulfilled('water');
-    } else {
-        document.getElementById("total-water-required").innerText = 'N/A';
-        document.getElementById("water-supply-fulfilled").innerText = 'N/A';
-    }
+        const total = (item.perAdult * adults) + (item.perAdult * children) + (item.perDog * dogs) + (item.perCat * cats);
+        const totalCell = document.createElement('td');
+        totalCell.textContent = `${formatNumber(total.toFixed(2))} ${item.unit}`;
+        row.appendChild(totalCell);
 
-    if (document.getElementById("calculate-food").checked) {
-        document.getElementById("total-food-required").innerText = totalCaloriesRequired.toLocaleString();
-        updateSupplyFulfilled('food');
-    } else {
-        document.getElementById("total-food-required").innerText = 'N/A';
-        document.getElementById("food-supply-fulfilled").innerText = 'N/A';
-    }
-}
-
-function updateSupplyFulfilled(resource) {
-    let totalRequiredText = document.getElementById(`total-${resource}-required`).innerText;
-    if (totalRequiredText === 'N/A') {
-        document.getElementById(`${resource}-supply-fulfilled`).innerText = 'N/A';
-        return;
-    }
-
-    let totalRequired = parseFloat(totalRequiredText.replace(/,/g, ''));
-    let availableSupply = parseFloat(document.getElementById(`available-${resource}`).value) || 0;
-    let percentageFulfilled = (availableSupply / totalRequired) * 100;
-
-    if (percentageFulfilled > 100) {
-        percentageFulfilled = 100;
-    }
-
-    document.getElementById(`${resource}-supply-fulfilled`).innerText = `${percentageFulfilled.toFixed(2)}%`;
-}
-
-function adjustQuantity(index, change) {
-    entityList[index].quantity += change;
-    if (entityList[index].quantity <= 0) {
-        entityList.splice(index, 1);
-    }
-    updateOutput();
-}
-
-function removeEntity(index) {
-    entityList.splice(index, 1);
-    updateOutput();
-}
-
-// Dark Mode Toggle Button
-document.getElementById("dark-mode-toggle").addEventListener("click", function () {
-    document.body.classList.toggle("dark-mode");
-
-    document.querySelectorAll(".container, th, td, button").forEach(element => {
-        element.classList.toggle("dark-mode");
+        tbody.appendChild(row);
     });
+}
 
-    if (document.body.classList.contains("dark-mode")) {
-        localStorage.setItem("theme", "dark");
-    } else {
-        localStorage.setItem("theme", "light");
-    }
-});
+function formatNumber(num) {
+    return num % 1 === 0 ? num : parseFloat(num).toFixed(2);
+}

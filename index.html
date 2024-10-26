@@ -2,115 +2,84 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Resource Requirements Calculator</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Supply Planner</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <button id="dark-mode-toggle" class="top-right">🌙</button>
-        <button id="print-button" class="print-button">🖨️ Print</button>
-        <h1>Resource Requirements Calculator</h1>
-        
-        <div id="input-section">
-            <h3>Duration</h3>
-            <label for="days-select">Select Duration:</label>
-            <select id="days-select">
-                <option value="3">3 Days</option>
-                <option value="7">7 Days</option>
-                <option value="30">30 Days</option>
-                <option value="60">60 Days</option>
-                <option value="90">90 Days</option>
-                <option value="180">180 Days</option>
-                <option value="365">365 Days</option>
-                <option value="custom">Custom</option>
-            </select>
-            <input type="number" id="custom-days" placeholder="Enter Days (1-365)" style="display:none;" min="1" max="365">
-            
-            <h3>Add Humans/Animals</h3>
-            <div id="entity-input">
-                <label for="entity-type">Type:</label>
-                <select id="entity-type">
-                    <option value="human">Human</option>
-                    <option value="animal">Animal</option>
+    <header>
+        <h1>Emergency Supply Planner</h1>
+        <p>Calculate essential supplies for your family's emergency needs.</p>
+    </header>
+
+    <main>
+        <section id="input-section">
+            <div class="input-group">
+                <label for="adults">Number of Adults:</label>
+                <input type="number" id="adults" min="0" value="1">
+            </div>
+            <div class="input-group">
+                <label for="children">Number of Children:</label>
+                <input type="number" id="children" min="0" value="0">
+            </div>
+            <div class="input-group">
+                <label for="dogs">Number of Dogs:</label>
+                <input type="number" id="dogs" min="0" value="0">
+            </div>
+            <div class="input-group">
+                <label for="cats">Number of Cats:</label>
+                <input type="number" id="cats" min="0" value="0">
+            </div>
+            <div class="input-group">
+                <label for="duration">Duration (days):</label>
+                <select id="duration">
+                    <option value="3">3</option>
+                    <option value="7">7</option>
+                    <option value="30">30</option>
+                    <option value="90">90</option>
+                    <option value="180">180</option>
                 </select>
-                <label for="entity-name">Name:</label>
-                <select id="entity-name" class="hidden"></select>
-                <label for="entity-quantity">Quantity:</label>
-                <input type="number" id="entity-quantity" placeholder="Enter Quantity" min="1" value="1">
-                <button onclick="addEntity()">Add</button>
             </div>
-            <p id="feedback-message" style="color: red; visibility: hidden;"></p>
-
-            <h3>Select Resources to Calculate</h3>
-            <div id="resource-selection">
-                <label><input type="checkbox" id="calculate-water" checked> Water</label>
-                <label><input type="checkbox" id="calculate-food"> Food</label>
+            <div class="input-group">
+                <label>Categories:</label>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" id="water" checked> Water</label>
+                    <label><input type="checkbox" id="food" checked> Food</label>
+                    <label><input type="checkbox" id="medical" checked> Medical Supplies</label>
+                    <label><input type="checkbox" id="gear" checked> Gear</label>
+                    <label><input type="checkbox" id="hygiene" checked> Sanitation & Hygiene</label>
+                    <label><input type="checkbox" id="communication" checked> Communication</label>
+                    <label><input type="checkbox" id="shelter" checked> Shelter</label>
+                    <label><input type="checkbox" id="tools" checked> Tools & Equipment</label>
+                    <label><input type="checkbox" id="power" checked> Power & Energy</label>
+                    <label><input type="checkbox" id="cooking" checked> Cooking and Heating</label>
+                    <label><input type="checkbox" id="security" checked> Personal Security</label>
+                </div>
             </div>
-        </div>
+            
+        </section>
 
-        <div class="divider"></div>
-
-        <div id="output-section">
-            <h2>Resource Requirement Breakdown</h2>
-            <h4 class="subheading">Estimated Total Resource Requirements</h4>
-            <p id="total-resources" class="total-resource-overview">No entities added yet.</p>
-
-            <table id="breakdown-table">
+        <section id="table-section">
+            <table id="supply-table">
                 <thead>
                     <tr>
-                        <th>Category</th>
-                        <th>Quantity</th>
-                        <th>Average Weight (lbs)</th>
-                        <th>Daily Water Requirement (Gallons)</th>
-                        <th>Total Water Need (Selected Days) (Gallons)</th>
-                        <th>Daily Calorie Requirement</th>
-                        <th>Total Calorie Need (Selected Days)</th>
-                        <th>Actions</th>
+                        <th>Item</th>
+                        <!-- Dynamic Columns for Adults, Children, Dogs, and Cats -->
+                        <th>Total Needed</th>
                     </tr>
                 </thead>
-                <tbody id="breakdown-body">
-                    <tr>
-                        <td colspan="8">No data available</td>
-                    </tr>
+                <tbody>
+                    <!-- Dynamic Rows for Items -->
                 </tbody>
             </table>
+        </section>
+    </main>
 
-            <div class="divider"></div>
+    <footer>
+        <p>&copy; 2024 Emergency Supply Planner</p>
+    </footer>
 
-            <h2>Resource Supply Tracker</h2>
-            <table id="supply-tracker-table">
-                <thead>
-                    <tr>
-                        <th>Supply Type</th>
-                        <th>Total Requirement (Units)</th>
-                        <th>Available Supply (Units)</th>
-                        <th>Percentage Fulfilled</th>
-                    </tr>
-                </thead>
-                <tbody id="supply-tracker-body">
-                    <tr>
-                        <td>Water (Gallons)</td>
-                        <td id="total-water-required">N/A</td>
-                        <td>
-                            <input type="number" id="available-water" value="0" min="0" step="1" onchange="updateSupplyFulfilled('water')">
-                        </td>
-                        <td id="water-supply-fulfilled">N/A</td>
-                    </tr>
-                    <tr>
-                        <td>Food (Calories)</td>
-                        <td id="total-food-required">N/A</td>
-                        <td>
-                            <input type="number" id="available-food" value="0" min="0" step="100" onchange="updateSupplyFulfilled('food')">
-                        </td>
-                        <td id="food-supply-fulfilled">N/A</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Include the data.js and script.js files -->
-        <script src="data.js"></script>
-        <script src="script.js"></script>
-    </div>
+    <script src="script.js"></script>
 </body>
 </html>

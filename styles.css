@@ -1,6 +1,4 @@
-/* styles.css */
-
-/* Reset some default styles */
+/* Reset some default styles for consistency */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -158,12 +156,12 @@ footer {
 
 /* Blocked Cell Styling */
 .blocked-cell {
-    background-color: #444; /* Dark color */
-    color: #ffffff; /* Light text for contrast */
-    opacity: 0.6; /* Slightly faded */
+    background-color: #444;    /* Dark color for blocked cells */
+    color: #ffffff;            /* Light text for contrast */
+    opacity: 0.6;              /* Slightly faded appearance */
 }
 
-/* Responsive Design */
+/* Responsive Design for smaller screens */
 @media (max-width: 768px) {
     main {
         flex-direction: column;

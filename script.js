@@ -1,5 +1,4 @@
-// script.js
+import { initialize } from './domHandler.js'; // Import the initialize function
 
-import { initialize } from './domHandler.js';
-
+// Initialize the application when the DOM is fully loaded
 document.addEventListener("DOMContentLoaded", initialize);

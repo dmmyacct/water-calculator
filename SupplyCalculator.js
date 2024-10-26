@@ -1,8 +1,8 @@
-// SupplyCalculator.js
-
+// Import necessary modules
 import { categories } from './data.js';
 import { consolidateItems } from './utils.js';
 
+// Define the SupplyCalculator class
 export default class SupplyCalculator {
     /**
      * Constructs the SupplyCalculator.
@@ -10,13 +10,15 @@ export default class SupplyCalculator {
      * @param {Array<string>} selectedCategories - Categories selected by the user.
      */
     constructor(inputs, selectedCategories) {
+        // Initialize properties based on user inputs
         this.adults = inputs.adults;
         this.children = inputs.children;
         this.dogs = inputs.dogs;
         this.cats = inputs.cats;
         this.duration = inputs.duration;
         this.selectedCategories = selectedCategories;
-        this.allItems = [];
+        this.allItems = []; // Array to store all items before consolidation
+        // Initialize total nutrition counters
         this.totalNutrition = {
             calories: 0,
             protein: 0,
@@ -30,23 +32,28 @@ export default class SupplyCalculator {
      * @returns {Array<Object>}
      */
     generateAllItems() {
+        // Iterate over each selected category
         this.selectedCategories.forEach(categoryKey => {
             const category = categories[categoryKey];
             if (category && category.items) {
+                // Iterate over each item in the category
                 category.items.forEach(item => {
-                    // Calculate per-day requirements for adults, children, dogs, and cats
+                    // Calculate per-day requirements for adults
                     const perAdult = (item.perAdultPerDay !== undefined) 
                         ? item.perAdultPerDay * this.duration 
                         : (item.perPersonPerDay !== undefined ? item.perPersonPerDay * this.duration : 0);
                     
+                    // Calculate per-day requirements for children
                     const perChild = (item.perChildPerDay !== undefined) 
                         ? item.perChildPerDay * this.duration 
                         : (item.perPersonPerDay !== undefined ? item.perPersonPerDay * this.duration : 0);
                     
+                    // Calculate per-day requirements for dogs
                     const perDog = (item.perDogPerDay !== undefined) 
                         ? item.perDogPerDay * this.duration 
                         : (item.perAnimalPerDay !== undefined ? item.perAnimalPerDay * this.duration : 0);
                     
+                    // Calculate per-day requirements for cats
                     const perCat = (item.perCatPerDay !== undefined) 
                         ? item.perCatPerDay * this.duration 
                         : (item.perAnimalPerDay !== undefined ? item.perAnimalPerDay * this.duration : 0);
@@ -64,21 +71,21 @@ export default class SupplyCalculator {
                         perFamily = 0;
                     }
 
-                    // Adjust per household or per family items based on shared among group members
+                    // Adjust perHousehold or perFamily items based on sharedAmong group members
                     if (sharedAmong > 1) {
                         perHousehold = perHousehold > 0 ? Math.ceil(perHousehold / sharedAmong) : 0;
                         perFamily = perFamily > 0 ? Math.ceil(perFamily / sharedAmong) : 0;
                     }
 
-                    // Create new item object
+                    // Create new item object with calculated quantities
                     const newItem = {
                         name: item.name,
                         perAdult: perAdult + perPerson,
                         perChild: perChild + perPerson,
                         perDog: perDog,
                         perCat: perCat,
-                        perHousehold: perHousehold,  // This value should not multiply by count
-                        perFamily: perFamily,        // This value should not multiply by count
+                        perHousehold: perHousehold,  // Not multiplied by count
+                        perFamily: perFamily,        // Not multiplied by count
                         unit: item.unit,
                         caloriesPerUnit: item.caloriesPerUnit || 0,
                         proteinPerUnit: item.proteinPerUnit || 0,
@@ -91,11 +98,13 @@ export default class SupplyCalculator {
                         this.calculateNutrition(newItem, perAdult, perChild, perDog, perCat);
                     }
 
+                    // Add the new item to the allItems array
                     this.allItems.push(newItem);
                 });
             }
         });
 
+        // Consolidate items with the same name
         return consolidateItems(this.allItems);
     }
 
@@ -108,11 +117,13 @@ export default class SupplyCalculator {
      * @param {number} perCat - Quantity per cat.
      */
     calculateNutrition(item, perAdult, perChild, perDog, perCat) {
+        // Total quantity for the nutrition item
         const totalQuantity = (perAdult * this.adults) +
                               (perChild * this.children) +
                               (perDog * this.dogs) +
                               (perCat * this.cats);
 
+        // Update total nutrition counters based on item name
         switch(item.name) {
             case "Calories":
                 this.totalNutrition.calories += totalQuantity;
@@ -137,14 +148,16 @@ export default class SupplyCalculator {
      * @returns {Array<Object>}
      */
     calculateTotals(consolidatedItems) {
+        // Map over consolidated items to calculate total quantities
         return consolidatedItems.map(item => {
             const total = (item.perAdult * this.adults) +
                           (item.perChild * this.children) +
                           (item.perDog * this.dogs) +
                           (item.perCat * this.cats) +
-                          item.perHousehold +  // This value should not multiply by count
-                          item.perFamily;      // This value should not multiply by count
+                          item.perHousehold +  // Not multiplied by count
+                          item.perFamily;      // Not multiplied by count
 
+            // Return item with total quantity included
             return { ...item, total };
         });
     }
@@ -154,9 +167,12 @@ export default class SupplyCalculator {
      * @returns {Object}
      */
     getSupplyList() {
+        // Generate and consolidate all items
         const consolidatedItems = this.generateAllItems();
+        // Calculate total quantities for each item
         const supplyList = this.calculateTotals(consolidatedItems);
 
+        // Return the supply list and total nutrition
         return {
             supplyList,
             totalNutrition: this.totalNutrition

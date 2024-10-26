@@ -1,38 +1,45 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Meta tags for responsiveness and character encoding -->
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Emergency Supply Planner</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css"> <!-- Link to the CSS file -->
 </head>
 <body>
+    <!-- Header section with title and description -->
     <header>
         <h1>Emergency Supply Planner</h1>
         <p>Calculate essential supplies for your family's emergency needs.</p>
     </header>
 
     <main>
+        <!-- Input section for user to enter data -->
         <section id="input-section">
             <form id="supply-form">
+                <!-- Number of Adults -->
                 <div class="input-group">
                     <label for="adults">Number of Adults:</label>
                     <input type="number" id="adults" name="adults" min="0" value="1">
                 </div>
+                <!-- Number of Children -->
                 <div class="input-group">
                     <label for="children">Number of Children:</label>
                     <input type="number" id="children" name="children" min="0" value="0">
                 </div>
+                <!-- Number of Dogs -->
                 <div class="input-group">
                     <label for="dogs">Number of Dogs:</label>
                     <input type="number" id="dogs" name="dogs" min="0" value="0">
                 </div>
+                <!-- Number of Cats -->
                 <div class="input-group">
                     <label for="cats">Number of Cats:</label>
                     <input type="number" id="cats" name="cats" min="0" value="0">
                 </div>
+                <!-- Duration selection -->
                 <div class="input-group">
                     <label for="duration">Duration (days):</label>
                     <select id="duration" name="duration">
@@ -44,6 +51,7 @@
                         <option value="180">180</option>
                     </select>
                 </div>
+                <!-- Categories checkboxes -->
                 <div class="input-group">
                     <label>Categories:</label>
                     <div class="checkbox-group">
@@ -53,6 +61,7 @@
             </form>
         </section>
 
+        <!-- Table section to display calculated supplies -->
         <section id="table-section">
             <table id="supply-table">
                 <thead>
@@ -76,10 +85,12 @@
         </section>
     </main>
 
+    <!-- Footer section -->
     <footer>
         <p>&copy; 2024 Emergency Supply Planner</p>
     </footer>
 
+    <!-- Main JavaScript file -->
     <script type="module" src="script.js"></script>
 </body>
 </html>

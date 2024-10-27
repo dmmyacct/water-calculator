@@ -1,3 +1,5 @@
+// utils.js
+
 /**
  * Formats a number to have up to two decimal places if necessary.
  * @param {number} num - The number to format.
@@ -23,22 +25,12 @@ export function consolidateItems(items) {
             // Initialize item in map if it doesn't exist
             itemMap[item.name] = {
                 name: item.name,
-                perAdult: item.perAdult || 0,
-                perChild: item.perChild || 0,
-                perDog: item.perDog || 0,
-                perCat: item.perCat || 0,
-                perHousehold: item.perHousehold || 0,
-                perFamily: item.perFamily || 0,
+                quantity: item.quantity,
                 unit: item.unit
             };
         } else {
             // Sum up quantities for existing item
-            itemMap[item.name].perAdult += item.perAdult || 0;
-            itemMap[item.name].perChild += item.perChild || 0;
-            itemMap[item.name].perDog += item.perDog || 0;
-            itemMap[item.name].perCat += item.perCat || 0;
-            itemMap[item.name].perHousehold += item.perHousehold || 0;
-            itemMap[item.name].perFamily += item.perFamily || 0;
+            itemMap[item.name].quantity += item.quantity;
         }
     });
 

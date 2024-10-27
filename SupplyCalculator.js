@@ -1,5 +1,7 @@
+// SupplyCalculator.js
+
 // Import necessary modules
-import { categories } from './data.js';
+import { categories, dailyRequirements } from './data.js';
 import { consolidateItems } from './utils.js';
 
 // Define the SupplyCalculator class
@@ -11,10 +13,8 @@ export default class SupplyCalculator {
      */
     constructor(inputs, selectedCategories) {
         // Initialize properties based on user inputs
-        this.adults = inputs.adults;
-        this.children = inputs.children;
-        this.dogs = inputs.dogs;
-        this.cats = inputs.cats;
+        this.people = inputs.people; // An array of people with their demographic keys
+        this.animals = inputs.animals; // An array of animals with their type keys
         this.duration = inputs.duration;
         this.selectedCategories = selectedCategories;
         this.allItems = []; // Array to store all items before consolidation
@@ -32,74 +32,22 @@ export default class SupplyCalculator {
      * @returns {Array<Object>}
      */
     generateAllItems() {
+        // Calculate individual requirements
+        const individualRequirements = this.calculateIndividualRequirements();
+
         // Iterate over each selected category
         this.selectedCategories.forEach(categoryKey => {
             const category = categories[categoryKey];
             if (category && category.items) {
                 // Iterate over each item in the category
                 category.items.forEach(item => {
-                    // Calculate per-day requirements for adults
-                    const perAdult = (item.perAdultPerDay !== undefined) 
-                        ? item.perAdultPerDay * this.duration 
-                        : (item.perPersonPerDay !== undefined ? item.perPersonPerDay * this.duration : 0);
-                    
-                    // Calculate per-day requirements for children
-                    const perChild = (item.perChildPerDay !== undefined) 
-                        ? item.perChildPerDay * this.duration 
-                        : (item.perPersonPerDay !== undefined ? item.perPersonPerDay * this.duration : 0);
-                    
-                    // Calculate per-day requirements for dogs
-                    const perDog = (item.perDogPerDay !== undefined) 
-                        ? item.perDogPerDay * this.duration 
-                        : (item.perAnimalPerDay !== undefined ? item.perAnimalPerDay * this.duration : 0);
-                    
-                    // Calculate per-day requirements for cats
-                    const perCat = (item.perCatPerDay !== undefined) 
-                        ? item.perCatPerDay * this.duration 
-                        : (item.perAnimalPerDay !== undefined ? item.perAnimalPerDay * this.duration : 0);
-
-                    // Handle one-time items and items shared among group members
-                    let perPerson = item.perPerson !== undefined ? item.perPerson : 0;
-                    let perHousehold = item.perHousehold !== undefined ? item.perHousehold : 0;
-                    let perFamily = item.perFamily !== undefined ? item.perFamily : 0;
-                    const thresholdDuration = item.thresholdDuration || 0;
-                    const sharedAmong = item.sharedAmong || 1;
-
-                    // If duration is less than thresholdDuration, the item is not needed
-                    if (this.duration < thresholdDuration) {
-                        perHousehold = 0;
-                        perFamily = 0;
-                    }
-
-                    // Adjust perHousehold or perFamily items based on sharedAmong group members
-                    if (sharedAmong > 1) {
-                        perHousehold = perHousehold > 0 ? Math.ceil(perHousehold / sharedAmong) : 0;
-                        perFamily = perFamily > 0 ? Math.ceil(perFamily / sharedAmong) : 0;
-                    }
-
-                    // Create new item object with calculated quantities
-                    const newItem = {
-                        name: item.name,
-                        perAdult: perAdult + perPerson,
-                        perChild: perChild + perPerson,
-                        perDog: perDog,
-                        perCat: perCat,
-                        perHousehold: perHousehold,  // Not multiplied by count
-                        perFamily: perFamily,        // Not multiplied by count
-                        unit: item.unit,
-                        caloriesPerUnit: item.caloriesPerUnit || 0,
-                        proteinPerUnit: item.proteinPerUnit || 0,
-                        fatPerUnit: item.fatPerUnit || 0,
-                        carbsPerUnit: item.carbsPerUnit || 0
-                    };
-
-                    // Calculate nutrition contributions if the item is in the Nutrition category
-                    if (categoryKey === 'nutrition') {
-                        this.calculateNutrition(newItem, perAdult, perChild, perDog, perCat);
-                    }
-
-                    // Add the new item to the allItems array
-                    this.allItems.push(newItem);
+                    // For each individual
+                    individualRequirements.forEach(req => {
+                        const newItem = this.calculateItemForIndividual(item, req);
+                        if (newItem) {
+                            this.allItems.push(newItem);
+                        }
+                    });
                 });
             }
         });
@@ -109,57 +57,111 @@ export default class SupplyCalculator {
     }
 
     /**
-     * Calculates nutrition contributions from a nutrition item.
-     * @param {Object} item - The item object.
-     * @param {number} perAdult - Quantity per adult.
-     * @param {number} perChild - Quantity per child.
-     * @param {number} perDog - Quantity per dog.
-     * @param {number} perCat - Quantity per cat.
+     * Calculates the individual requirements for each person and animal.
+     * @returns {Array<Object>}
      */
-    calculateNutrition(item, perAdult, perChild, perDog, perCat) {
-        // Total quantity for the nutrition item
-        const totalQuantity = (perAdult * this.adults) +
-                              (perChild * this.children) +
-                              (perDog * this.dogs) +
-                              (perCat * this.cats);
+    calculateIndividualRequirements() {
+        const requirements = [];
 
-        // Update total nutrition counters based on item name
-        switch(item.name) {
-            case "Calories":
-                this.totalNutrition.calories += totalQuantity;
-                break;
-            case "Protein":
-                this.totalNutrition.protein += totalQuantity;
-                break;
-            case "Fat":
-                this.totalNutrition.fat += totalQuantity;
-                break;
-            case "Carbohydrates":
-                this.totalNutrition.carbs += totalQuantity;
-                break;
-            default:
-                break;
-        }
+        // Calculate for humans
+        this.people.forEach(person => {
+            const demographic = dailyRequirements.humans[person];
+            if (demographic) {
+                const weight = demographic.weight;
+                const waterNeed = (demographic.waterPerKg * weight) + (demographic.extraWater || 0); // ml/day
+                const calorieNeed = (demographic.caloriesPerKg * weight) + (demographic.extraCalories || 0); // kcal/day
+                const proteinNeed = (demographic.proteinPerKg * weight) + (demographic.extraProtein || 0); // g/day
+
+                requirements.push({
+                    type: 'human',
+                    name: person,
+                    weight,
+                    waterNeed,
+                    calorieNeed,
+                    proteinNeed
+                });
+            }
+        });
+
+        // Calculate for animals
+        this.animals.forEach(animal => {
+            const animalData = dailyRequirements.animals[animal];
+            if (animalData) {
+                const weight = animalData.weight;
+                // Water need
+                const waterNeed = animalData.waterPerKg * weight; // ml/day
+
+                // Calorie need calculated using RER and activity factor
+                let calorieNeed = 0;
+                if (animalData.RER) {
+                    const RER = 70 * Math.pow(weight, 0.75);
+                    calorieNeed = RER * animalData.activityFactor;
+                } else if (animalData.caloriesPerKg) {
+                    calorieNeed = animalData.caloriesPerKg * weight;
+                }
+
+                requirements.push({
+                    type: 'animal',
+                    name: animal,
+                    weight,
+                    waterNeed,
+                    calorieNeed,
+                    proteinNeed: null // Can be added if data is available
+                });
+            }
+        });
+
+        return requirements;
     }
 
     /**
-     * Calculates the total quantity needed for each item.
-     * @param {Array<Object>} consolidatedItems
-     * @returns {Array<Object>}
+     * Calculates the required quantity of an item for an individual.
+     * @param {Object} item - The item object.
+     * @param {Object} individual - The individual requirement object.
+     * @returns {Object|null}
      */
-    calculateTotals(consolidatedItems) {
-        // Map over consolidated items to calculate total quantities
-        return consolidatedItems.map(item => {
-            const total = (item.perAdult * this.adults) +
-                          (item.perChild * this.children) +
-                          (item.perDog * this.dogs) +
-                          (item.perCat * this.cats) +
-                          item.perHousehold +  // Not multiplied by count
-                          item.perFamily;      // Not multiplied by count
+    calculateItemForIndividual(item, individual) {
+        if (item.category === 'water') {
+            // Calculate total water needed over the duration (in ml)
+            const totalWaterNeeded = individual.waterNeed * this.duration; // ml
 
-            // Return item with total quantity included
-            return { ...item, total };
-        });
+            // Calculate number of units needed
+            const unitsNeeded = totalWaterNeeded / item.perUnitVolume;
+
+            return {
+                name: item.name,
+                quantity: unitsNeeded,
+                unit: item.unit
+            };
+        }
+
+        if (item.category === 'food' || item.category === 'animal_food') {
+            // Calculate total calories needed over the duration
+            const totalCaloriesNeeded = individual.calorieNeed * this.duration;
+
+            // Calculate number of units needed based on calories per unit
+            const caloriesPerUnit = item.caloriesPerUnit * (item.unitWeight / 100);
+            const unitsNeeded = totalCaloriesNeeded / caloriesPerUnit;
+
+            // Accumulate nutritional information for humans
+            if (individual.type === 'human') {
+                this.totalNutrition.calories += item.caloriesPerUnit * unitsNeeded * (item.unitWeight / 100) * this.duration;
+                this.totalNutrition.protein += item.proteinPerUnit * unitsNeeded * (item.unitWeight / 100) * this.duration;
+                this.totalNutrition.fat += item.fatPerUnit * unitsNeeded * (item.unitWeight / 100) * this.duration;
+                this.totalNutrition.carbs += item.carbsPerUnit * unitsNeeded * (item.unitWeight / 100) * this.duration;
+            }
+
+            return {
+                name: item.name,
+                quantity: unitsNeeded,
+                unit: item.unit
+            };
+        }
+
+        // Handle other categories as needed
+        // ...
+
+        return null; // If item does not apply
     }
 
     /**
@@ -169,12 +171,10 @@ export default class SupplyCalculator {
     getSupplyList() {
         // Generate and consolidate all items
         const consolidatedItems = this.generateAllItems();
-        // Calculate total quantities for each item
-        const supplyList = this.calculateTotals(consolidatedItems);
 
         // Return the supply list and total nutrition
         return {
-            supplyList,
+            supplyList: consolidatedItems,
             totalNutrition: this.totalNutrition
         };
     }

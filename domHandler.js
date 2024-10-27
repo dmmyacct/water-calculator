@@ -1,3 +1,5 @@
+// domHandler.js
+
 import SupplyCalculator from './SupplyCalculator.js';
 import { formatNumber, debounce } from './utils.js';
 import { categoryGroups, categories } from './data.js';
@@ -46,19 +48,33 @@ function generateCategoryGroups() {
  * @returns {Object} - An object containing validated input values.
  */
 export function getInputValues() {
-    const adults = parseInt(document.getElementById('adults').value, 10);
-    const children = parseInt(document.getElementById('children').value, 10);
-    const dogs = parseInt(document.getElementById('dogs').value, 10);
-    const cats = parseInt(document.getElementById('cats').value, 10);
-    const duration = parseInt(document.getElementById('duration').value, 10);
+    const form = document.getElementById('supply-form');
+    const formData = new FormData(form);
 
-    // Ensure values are numbers and not negative
+    const people = [];
+    const demographics = formData.getAll('demographics');
+    demographics.forEach(demo => {
+        const count = parseInt(formData.get(`${demo}-count`), 10) || 0;
+        for (let i = 0; i < count; i++) {
+            people.push(demo);
+        }
+    });
+
+    const animals = [];
+    const animalTypes = formData.getAll('animalTypes');
+    animalTypes.forEach(animal => {
+        const count = parseInt(formData.get(`${animal}-count`), 10) || 0;
+        for (let i = 0; i < count; i++) {
+            animals.push(animal);
+        }
+    });
+
+    const duration = parseInt(formData.get('duration'), 10) || 1;
+
     return { 
-        adults: isNaN(adults) || adults < 0 ? 0 : adults,
-        children: isNaN(children) || children < 0 ? 0 : children,
-        dogs: isNaN(dogs) || dogs < 0 ? 0 : dogs,
-        cats: isNaN(cats) || cats < 0 ? 0 : cats,
-        duration: isNaN(duration) || duration < 1 ? 1 : duration 
+        people,
+        animals,
+        duration
     };
 }
 
@@ -78,50 +94,10 @@ export function getSelectedCategories() {
 }
 
 /**
- * Generates the table header based on the number of adults, children, dogs, and cats.
- * @param {number} adults
- * @param {number} children
- * @param {number} dogs
- * @param {number} cats
- */
-export function generateTableHeader(adults, children, dogs, cats) {
-    const theadRow = document.querySelector('#supply-table thead tr');
-    let headerHTML = '<th>Item</th>';
-
-    // Add columns for each adult
-    for (let i = 1; i <= adults; i++) {
-        headerHTML += `<th>Adult ${i}</th>`;
-    }
-
-    // Add columns for each child
-    for (let i = 1; i <= children; i++) {
-        headerHTML += `<th>Child ${i}</th>`;
-    }
-
-    // Add columns for each dog
-    for (let i = 1; i <= dogs; i++) {
-        headerHTML += `<th>Dog ${i}</th>`;
-    }
-
-    // Add columns for each cat
-    for (let i = 1; i <= cats; i++) {
-        headerHTML += `<th>Cat ${i}</th>`;
-    }
-
-    // Add Total Needed column
-    headerHTML += '<th>Total Needed</th>';
-    theadRow.innerHTML = headerHTML;
-}
-
-/**
  * Populates the table body with calculated supply items.
  * @param {Array<Object>} items - List of supply items.
- * @param {number} adults
- * @param {number} children
- * @param {number} dogs
- * @param {number} cats
  */
-export function populateTableRows(items, adults, children, dogs, cats) {
+export function populateTableRows(items) {
     const tbody = document.querySelector('#supply-table tbody');
     tbody.innerHTML = ''; // Clear existing rows
 
@@ -134,48 +110,10 @@ export function populateTableRows(items, adults, children, dogs, cats) {
         nameCell.textContent = item.name;
         row.appendChild(nameCell);
 
-        // Helper function to create individual cells
-        const createCell = (value) => {
-            const cell = document.createElement('td');
-            if (value > 0) {
-                cell.textContent = formatNumber(value);
-            } else {
-                cell.textContent = '';
-                cell.classList.add('blocked-cell'); // Style for zero values
-            }
-            return cell;
-        };
-
-        // Adult columns
-        for (let i = 0; i < adults; i++) {
-            row.appendChild(createCell(item.perAdult));
-        }
-
-        // Child columns
-        for (let i = 0; i < children; i++) {
-            row.appendChild(createCell(item.perChild));
-        }
-
-        // Dog columns
-        for (let i = 0; i < dogs; i++) {
-            row.appendChild(createCell(item.perDog));
-        }
-
-        // Cat columns
-        for (let i = 0; i < cats; i++) {
-            row.appendChild(createCell(item.perCat));
-        }
-
-        // Total Needed cell
-        const totalCell = document.createElement('td');
-        if (item.total > 0) {
-            totalCell.textContent = `${formatNumber(item.total)} ${item.unit}`;
-        } else {
-            totalCell.textContent = '';
-            totalCell.classList.add('blocked-cell');
-        }
-        totalCell.classList.add('total-column');
-        row.appendChild(totalCell);
+        // Quantity cell
+        const quantityCell = document.createElement('td');
+        quantityCell.textContent = `${formatNumber(item.quantity)} ${item.unit}`;
+        row.appendChild(quantityCell);
 
         // Append the row to the table body
         tbody.appendChild(row);
@@ -224,14 +162,11 @@ function updateTable() {
     const inputs = getInputValues();
     const selectedCategories = getSelectedCategories();
 
-    // Generate table header based on inputs
-    generateTableHeader(inputs.adults, inputs.children, inputs.dogs, inputs.cats);
-
     // Create a new SupplyCalculator instance and get the supply list
     const calculator = new SupplyCalculator(inputs, selectedCategories);
     const { supplyList, totalNutrition } = calculator.getSupplyList();
 
     // Populate the table and nutrition summary with calculated data
-    populateTableRows(supplyList, inputs.adults, inputs.children, inputs.dogs, inputs.cats);
+    populateTableRows(supplyList);
     populateNutritionSummary(totalNutrition);
 }

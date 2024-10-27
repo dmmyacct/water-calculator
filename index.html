@@ -19,26 +19,134 @@
         <!-- Input section for user to enter data -->
         <section id="input-section">
             <form id="supply-form">
-                <!-- Number of Adults -->
+                <!-- Demographics Selection -->
                 <div class="input-group">
-                    <label for="adults">Number of Adults:</label>
-                    <input type="number" id="adults" name="adults" min="0" value="1">
+                    <label>Demographics:</label>
+                    <div class="demographics-group">
+                        <div class="individual-input">
+                            <label>
+                                <input type="checkbox" name="demographics" value="Infant">
+                                Infant
+                            </label>
+                            <input type="number" name="Infant-count" min="0" value="0" placeholder="Count">
+                        </div>
+                        <div class="individual-input">
+                            <label>
+                                <input type="checkbox" name="demographics" value="Toddler">
+                                Toddler
+                            </label>
+                            <input type="number" name="Toddler-count" min="0" value="0" placeholder="Count">
+                        </div>
+                        <div class="individual-input">
+                            <label>
+                                <input type="checkbox" name="demographics" value="Child">
+                                Child
+                            </label>
+                            <input type="number" name="Child-count" min="0" value="0" placeholder="Count">
+                        </div>
+                        <div class="individual-input">
+                            <label>
+                                <input type="checkbox" name="demographics" value="Older Child">
+                                Older Child
+                            </label>
+                            <input type="number" name="Older Child-count" min="0" value="0" placeholder="Count">
+                        </div>
+                        <div class="individual-input">
+                            <label>
+                                <input type="checkbox" name="demographics" value="Teenager Male">
+                                Teenager Male
+                            </label>
+                            <input type="number" name="Teenager Male-count" min="0" value="0" placeholder="Count">
+                        </div>
+                        <div class="individual-input">
+                            <label>
+                                <input type="checkbox" name="demographics" value="Teenager Female">
+                                Teenager Female
+                            </label>
+                            <input type="number" name="Teenager Female-count" min="0" value="0" placeholder="Count">
+                        </div>
+                        <div class="individual-input">
+                            <label>
+                                <input type="checkbox" name="demographics" value="Adult Male">
+                                Adult Male
+                            </label>
+                            <input type="number" name="Adult Male-count" min="0" value="0" placeholder="Count">
+                        </div>
+                        <div class="individual-input">
+                            <label>
+                                <input type="checkbox" name="demographics" value="Adult Female">
+                                Adult Female
+                            </label>
+                            <input type="number" name="Adult Female-count" min="0" value="0" placeholder="Count">
+                        </div>
+                        <div class="individual-input">
+                            <label>
+                                <input type="checkbox" name="demographics" value="Pregnant Female">
+                                Pregnant Female
+                            </label>
+                            <input type="number" name="Pregnant Female-count" min="0" value="0" placeholder="Count">
+                        </div>
+                        <div class="individual-input">
+                            <label>
+                                <input type="checkbox" name="demographics" value="Lactating Female">
+                                Lactating Female
+                            </label>
+                            <input type="number" name="Lactating Female-count" min="0" value="0" placeholder="Count">
+                        </div>
+                        <div class="individual-input">
+                            <label>
+                                <input type="checkbox" name="demographics" value="Elderly Male">
+                                Elderly Male
+                            </label>
+                            <input type="number" name="Elderly Male-count" min="0" value="0" placeholder="Count">
+                        </div>
+                        <div class="individual-input">
+                            <label>
+                                <input type="checkbox" name="demographics" value="Elderly Female">
+                                Elderly Female
+                            </label>
+                            <input type="number" name="Elderly Female-count" min="0" value="0" placeholder="Count">
+                        </div>
+                        <!-- Add more demographics as needed -->
+                    </div>
                 </div>
-                <!-- Number of Children -->
+
+                <!-- Animal Selection -->
                 <div class="input-group">
-                    <label for="children">Number of Children:</label>
-                    <input type="number" id="children" name="children" min="0" value="0">
+                    <label>Animals:</label>
+                    <div class="animals-group">
+                        <div class="animal-input">
+                            <label>
+                                <input type="checkbox" name="animalTypes" value="Dog">
+                                Dog
+                            </label>
+                            <input type="number" name="Dog-count" min="0" value="0" placeholder="Count">
+                        </div>
+                        <div class="animal-input">
+                            <label>
+                                <input type="checkbox" name="animalTypes" value="Cat">
+                                Cat
+                            </label>
+                            <input type="number" name="Cat-count" min="0" value="0" placeholder="Count">
+                        </div>
+                        <div class="animal-input">
+                            <label>
+                                <input type="checkbox" name="animalTypes" value="Rabbit">
+                                Rabbit
+                            </label>
+                            <input type="number" name="Rabbit-count" min="0" value="0" placeholder="Count">
+                        </div>
+                        <div class="animal-input">
+                            <label>
+                                <input type="checkbox" name="animalTypes" value="Chicken">
+                                Chicken
+                            </label>
+                            <input type="number" name="Chicken-count" min="0" value="0" placeholder="Count">
+                        </div>
+                        <!-- Add more animals as needed -->
+                    </div>
                 </div>
-                <!-- Number of Dogs -->
-                <div class="input-group">
-                    <label for="dogs">Number of Dogs:</label>
-                    <input type="number" id="dogs" name="dogs" min="0" value="0">
-                </div>
-                <!-- Number of Cats -->
-                <div class="input-group">
-                    <label for="cats">Number of Cats:</label>
-                    <input type="number" id="cats" name="cats" min="0" value="0">
-                </div>
+
                 <!-- Duration selection -->
                 <div class="input-group">
                     <label for="duration">Duration (days):</label>
@@ -46,6 +154,7 @@
                         <option value="1" selected>1</option> <!-- 1 Day, Default -->
                         <option value="3">3</option>
                         <option value="7">7</option>
+                        <option value="14">14</option>
                         <option value="30">30</option>
                         <option value="90">90</option>
                         <option value="180">180</option>
@@ -67,7 +176,6 @@
                 <thead>
                     <tr>
                         <th>Item</th>
-                        <!-- Dynamic Columns for Adults, Children, Dogs, and Cats -->
                         <th>Total Needed</th>
                     </tr>
                 </thead>

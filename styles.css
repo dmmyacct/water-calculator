@@ -1,3 +1,5 @@
+/* styles.css */
+
 /* Reset some default styles for consistency */
 * {
     box-sizing: border-box;
@@ -61,6 +63,20 @@ main {
     font-size: 1em;
     border: 1px solid #ccc;
     border-radius: 4px;
+}
+
+.demographics-group,
+.animals-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.individual-input,
+.animal-input {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .checkbox-group {

@@ -22,15 +22,19 @@ export const dailyRequirements = {
     }
 };
 
-// Group categories into higher-level groups for UI purposes
+// Updated category groups
 export const categoryGroups = {
     critical: {
         name: "Critical Supplies",
-        categories: ["water", "nutrition"]
+        categories: ["water", "food"]
+    },
+    nutrition: {
+        name: "Nutrition",
+        categories: ["nutrition"]
     },
     essential: {
         name: "Essential Supplies",
-        categories: ["food", "medical"]
+        categories: ["medical"]
     },
     comfort: {
         name: "Comfort Supplies",
@@ -58,8 +62,7 @@ export const categories = {
                 perDogPerDay: 1,
                 perCatPerDay: 0.5,
                 unit: "gallons"
-            },
-            // Add more water-related items if needed
+            }
         ]
     },
     food: {
@@ -67,43 +70,26 @@ export const categories = {
         items: [
             {
                 name: "Rice (lbs)",
-                perAdultPerDay: 0.625,    // Pounds per adult per day
-                perChildPerDay: 0.3,      // Pounds per child per day
-                unit: "lbs",
-                caloriesPerUnit: 1600,    // Calories per pound
-                proteinPerUnit: 30,       // Protein grams per pound
-                fatPerUnit: 1,            // Fat grams per pound
-                carbsPerUnit: 350         // Carbs grams per pound
+                perAdultPerDay: 0.625,
+                perChildPerDay: 0.3,
+                unit: "lbs"
             },
             {
                 name: "Canned Meat (cans)",
-                perAdultPerDay: 0.875,    // Cans per adult per day
-                perChildPerDay: 0.4,      // Cans per child per day
-                unit: "cans",
-                caloriesPerUnit: 400,     // Calories per can
-                proteinPerUnit: 20,       // Protein grams per can
-                fatPerUnit: 25,           // Fat grams per can
-                carbsPerUnit: 10          // Carbs grams per can
+                perAdultPerDay: 0.875,
+                perChildPerDay: 0.4,
+                unit: "cans"
             },
             {
                 name: "Dog Food (lbs)",
-                perDogPerDay: 2.5,        // Pounds per dog per day
-                unit: "lbs",
-                caloriesPerUnit: 350,     // Calories per pound
-                proteinPerUnit: 10,
-                fatPerUnit: 15,
-                carbsPerUnit: 30
+                perDogPerDay: 2.5,
+                unit: "lbs"
             },
             {
                 name: "Cat Food (lbs)",
-                perCatPerDay: 0.5,        // Pounds per cat per day
-                unit: "lbs",
-                caloriesPerUnit: 300,     // Calories per pound
-                proteinPerUnit: 30,
-                fatPerUnit: 10,
-                carbsPerUnit: 15
-            },
-            // Add more food items as needed
+                perCatPerDay: 0.5,
+                unit: "lbs"
+            }
         ]
     },
     nutrition: {
@@ -111,7 +97,7 @@ export const categories = {
         items: [
             {
                 name: "Calories",
-                perAdultPerDay: 2000,     // Calories per adult per day
+                perAdultPerDay: 2000,
                 perChildPerDay: 1500,
                 perDogPerDay: 700,
                 perCatPerDay: 250,
@@ -119,7 +105,7 @@ export const categories = {
             },
             {
                 name: "Protein",
-                perAdultPerDay: 50,       // Protein grams per adult per day
+                perAdultPerDay: 50,
                 perChildPerDay: 30,
                 perDogPerDay: 10,
                 perCatPerDay: 30,
@@ -127,7 +113,7 @@ export const categories = {
             },
             {
                 name: "Fat",
-                perAdultPerDay: 70,       // Fat grams per adult per day
+                perAdultPerDay: 70,
                 perChildPerDay: 40,
                 perDogPerDay: 15,
                 perCatPerDay: 10,
@@ -135,7 +121,7 @@ export const categories = {
             },
             {
                 name: "Carbohydrates",
-                perAdultPerDay: 300,      // Carbs grams per adult per day
+                perAdultPerDay: 300,
                 perChildPerDay: 200,
                 perDogPerDay: 30,
                 perCatPerDay: 15,

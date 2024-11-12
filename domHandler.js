@@ -242,29 +242,40 @@ function populateTableRows(supplyList, inputs) {
         return;
     }
 
-    // Group items by category
+    // Group items by their parent category group
     const groupedItems = supplyList.reduce((acc, item) => {
-        if (!acc[item.category]) {
-            acc[item.category] = [];
+        // Find the category group that contains this item's category
+        const groupEntry = Object.entries(categoryGroups).find(([_, group]) => 
+            group.categories.some(cat => categories[cat].name === item.category)
+        );
+        
+        if (groupEntry) {
+            const [groupKey, group] = groupEntry;
+            if (!acc[groupKey]) {
+                acc[groupKey] = {
+                    name: group.name,
+                    items: []
+                };
+            }
+            acc[groupKey].items.push(item);
         }
-        acc[item.category].push(item);
         return acc;
     }, {});
 
     // Iterate through grouped items
     let categoryIndex = 0;
-    Object.entries(groupedItems).forEach(([category, items]) => {
-        // Add category header row
+    Object.entries(groupedItems).forEach(([groupKey, group]) => {
+        // Add category group header row
         const categoryRow = document.createElement('tr');
         categoryRow.classList.add('category-header');
-        categoryRow.dataset.category = category;
+        categoryRow.dataset.category = groupKey;
         categoryRow.dataset.index = categoryIndex++;
         const colspan = 3 + inputs.adults + inputs.children + inputs.dogs + inputs.cats;
-        categoryRow.innerHTML = `<td colspan="${colspan}">${category}</td>`;
+        categoryRow.innerHTML = `<td colspan="${colspan}">${group.name}</td>`;
         tbody.appendChild(categoryRow);
 
-        // Add items for this category
-        items.forEach(item => {
+        // Add items for this category group
+        group.items.forEach(item => {
             const row = document.createElement('tr');
             let rowHTML = `<td>${item.name}</td><td>${item.category}</td>`;
 
@@ -301,7 +312,6 @@ function populateTableRows(supplyList, inputs) {
             let displayTotal = item.total;
             let displayUnit = item.unit;
             
-            // Convert liquid measurements if the item is water
             if (item.name.toLowerCase().includes('water')) {
                 displayTotal = convertLiquidMeasurement(item.total, currentLiquidUnit);
                 displayUnit = currentLiquidUnit;
@@ -314,7 +324,6 @@ function populateTableRows(supplyList, inputs) {
         });
     });
 
-    // Call function to set up sticky headers
     setupStickyCategoryHeaders();
 }
 

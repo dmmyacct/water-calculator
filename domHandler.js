@@ -2,8 +2,10 @@ import SupplyCalculator from './SupplyCalculator.js';
 import { formatNumber, debounce, convertLiquidMeasurement } from './utils.js';
 import { categoryGroups, categories } from './data.js';
 import { DefaultsManager } from './defaultsManager.js';
+import { UnitSystem } from './unitSystem.js';
 
 let currentLiquidUnit = 'gallons'; // Default unit
+let currentUnitSystem = 'imperial'; // Default unit system
 
 /**
  * Dynamically generates category groups and checkboxes in the UI.
@@ -280,32 +282,34 @@ function populateTableRows(supplyList, inputs) {
             let rowHTML = `<td>${item.name}</td><td>${item.category}</td>`;
 
             // Function to format value with unit
-            const formatValueWithUnit = (value, itemUnit) => {
-                if (item.name.toLowerCase().includes('water')) {
-                    value = convertLiquidMeasurement(value, currentLiquidUnit);
-                    itemUnit = currentLiquidUnit;
-                }
-                return `${formatNumber(value)} ${getUnitLabel(itemUnit)}`;
+            const formatValueWithUnit = (value, itemUnit, itemName) => {
+                if (!value) return '0';
+                
+                // Convert the value based on the current unit system
+                const convertedValue = UnitSystem.convertValue(value, itemUnit, currentUnitSystem);
+                const displayUnit = UnitSystem.getDisplayUnit(itemUnit, currentUnitSystem);
+                
+                return `${formatNumber(convertedValue)} ${displayUnit}`;
             };
 
             // Add cells for each adult
             for (let i = 0; i < inputs.adults; i++) {
-                rowHTML += `<td>${formatValueWithUnit(item.perAdult || 0, item.unit)}</td>`;
+                rowHTML += `<td>${formatValueWithUnit(item.perAdult || 0, item.unit, item.name)}</td>`;
             }
 
             // Add cells for each child
             for (let i = 0; i < inputs.children; i++) {
-                rowHTML += `<td>${formatValueWithUnit(item.perChild || 0, item.unit)}</td>`;
+                rowHTML += `<td>${formatValueWithUnit(item.perChild || 0, item.unit, item.name)}</td>`;
             }
 
             // Add cells for each dog
             for (let i = 0; i < inputs.dogs; i++) {
-                rowHTML += `<td>${formatValueWithUnit(item.perDog || 0, item.unit)}</td>`;
+                rowHTML += `<td>${formatValueWithUnit(item.perDog || 0, item.unit, item.name)}</td>`;
             }
 
             // Add cells for each cat
             for (let i = 0; i < inputs.cats; i++) {
-                rowHTML += `<td>${formatValueWithUnit(item.perCat || 0, item.unit)}</td>`;
+                rowHTML += `<td>${formatValueWithUnit(item.perCat || 0, item.unit, item.name)}</td>`;
             }
 
             // Add total column
@@ -376,12 +380,56 @@ function addLiquidUnitSelector() {
 }
 
 /**
+ * Creates and adds the unit system selector to the form
+ */
+function addUnitSystemSelector() {
+    const inputGroup = document.createElement('div');
+    inputGroup.classList.add('input-group', 'unit-system-input');
+    
+    const label = document.createElement('label');
+    label.htmlFor = 'unit-system';
+    label.textContent = 'Measurement System:';
+    
+    const select = document.createElement('select');
+    select.id = 'unit-system';
+    select.name = 'unit-system';
+    
+    const systems = [
+        { value: 'imperial', label: 'Imperial (US)' },
+        { value: 'metric', label: 'Metric' }
+    ];
+    
+    systems.forEach(system => {
+        const option = document.createElement('option');
+        option.value = system.value;
+        option.textContent = system.label;
+        if (system.value === currentUnitSystem) {
+            option.selected = true;
+        }
+        select.appendChild(option);
+    });
+    
+    select.addEventListener('change', (e) => {
+        currentUnitSystem = e.target.value;
+        updateTable();
+    });
+    
+    inputGroup.appendChild(label);
+    inputGroup.appendChild(select);
+    
+    // Insert after the liquid unit selector
+    const liquidUnitGroup = document.querySelector('#liquid-unit').closest('.input-group');
+    liquidUnitGroup.after(inputGroup);
+}
+
+/**
  * Initializes event listeners and updates the table on load.
  */
 export function initialize() {
     generateCategoryGroups();
     initializeInputControls();
     addLiquidUnitSelector();
+    addUnitSystemSelector();
     addSearchBar();
 
     // Add event listeners to all inputs

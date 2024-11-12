@@ -693,3 +693,29 @@ footer {
         outline: 2px solid ButtonText;
     }
 }
+
+/* Add to existing styles */
+.unit-system-input {
+    border-left: 3px solid #9b59b6;
+    padding-left: 10px;
+    margin-top: 15px;
+}
+
+.unit-system-input select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+}
+
+.unit-system-input select:hover {
+    border-color: #9b59b6;
+}
+
+.unit-system-input select:focus {
+    outline: none;
+    border-color: #9b59b6;
+    box-shadow: 0 0 0 2px rgba(155, 89, 182, 0.1);
+}

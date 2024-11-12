@@ -82,7 +82,8 @@ main {
 #supply-table thead {
     position: sticky;
     top: 0;
-    z-index: 1;
+    z-index: 2;
+    background: #2c3e50;
 }
 
 #supply-table th {
@@ -91,6 +92,8 @@ main {
     padding: 12px;
     text-align: center;
     font-weight: bold;
+    position: sticky;
+    top: 0;
 }
 
 /* Add this to ensure the header cells have a background */
@@ -536,6 +539,7 @@ footer {
     padding: 10px;
     border-top: 2px solid #ddd;
     border-bottom: 2px solid #ddd;
+    background-color: #f0f0f0;
 }
 
 /* Ensure the category header has a background */

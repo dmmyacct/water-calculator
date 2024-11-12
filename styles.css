@@ -808,3 +808,127 @@ footer {
     outline: 2px solid #3498db;
     outline-offset: 2px;
 }
+
+/* Add these styles */
+.reset-defaults-btn {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: all 0.2s ease;
+    margin-left: auto;
+}
+
+.reset-defaults-btn:hover {
+    background-color: #c0392b;
+}
+
+.reset-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.reset-modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+}
+
+.reset-modal h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+}
+
+.reset-modal p {
+    margin-bottom: 20px;
+    color: #34495e;
+    line-height: 1.5;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.modal-buttons button {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.confirm-reset-btn {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.confirm-reset-btn:hover {
+    background-color: #c0392b;
+}
+
+.cancel-btn {
+    background-color: #95a5a6;
+    color: white;
+}
+
+.cancel-btn:hover {
+    background-color: #7f8c8d;
+}
+
+.toast-message {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background-color: #2ecc71;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.toast-message.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .reset-modal-content {
+        margin: 20px;
+        padding: 15px;
+    }
+    
+    .toast-message {
+        width: 90%;
+        text-align: center;
+    }
+}
+
+/* High contrast mode support */
+@media (forced-colors: active) {
+    .reset-defaults-btn,
+    .confirm-reset-btn,
+    .cancel-btn {
+        border: 1px solid ButtonText;
+    }
+}

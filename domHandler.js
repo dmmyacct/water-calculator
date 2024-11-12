@@ -463,7 +463,8 @@ export function initialize() {
     addLiquidUnitSelector();
     addUnitSystemSelector();
     addSearchBar();
-
+    addResetButton();
+    
     // Add event listeners to all inputs
     const inputs = document.querySelectorAll('#supply-form input, #supply-form select');
     inputs.forEach(input => {
@@ -875,4 +876,99 @@ function filterSupplyTable() {
     if (currentGroup) {
         currentGroup.style.display = groupHasVisibleItems ? '' : 'none';
     }
+}
+
+function addResetButton() {
+    const controlsDiv = document.querySelector('.category-controls');
+    
+    const resetBtn = document.createElement('button');
+    resetBtn.innerHTML = '↺ Reset Defaults';
+    resetBtn.classList.add('reset-defaults-btn');
+    resetBtn.type = 'button';
+    resetBtn.addEventListener('click', showResetConfirmation);
+    
+    controlsDiv.appendChild(resetBtn);
+}
+
+function showResetConfirmation() {
+    const modal = document.createElement('div');
+    modal.classList.add('reset-modal');
+    
+    const modalContent = document.createElement('div');
+    modalContent.classList.add('reset-modal-content');
+    
+    const header = document.createElement('h3');
+    header.textContent = 'Reset to Defaults';
+    
+    const message = document.createElement('p');
+    message.textContent = 'This will reset all custom values to their original defaults. This action cannot be undone. Do you want to continue?';
+    
+    const buttonContainer = document.createElement('div');
+    buttonContainer.classList.add('modal-buttons');
+    
+    const confirmBtn = document.createElement('button');
+    confirmBtn.textContent = 'Reset';
+    confirmBtn.classList.add('confirm-reset-btn');
+    confirmBtn.addEventListener('click', () => {
+        resetAllDefaults();
+        modal.remove();
+    });
+    
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.classList.add('cancel-btn');
+    cancelBtn.addEventListener('click', () => modal.remove());
+    
+    buttonContainer.appendChild(confirmBtn);
+    buttonContainer.appendChild(cancelBtn);
+    
+    modalContent.appendChild(header);
+    modalContent.appendChild(message);
+    modalContent.appendChild(buttonContainer);
+    modal.appendChild(modalContent);
+    
+    document.body.appendChild(modal);
+}
+
+function resetAllDefaults() {
+    // Reset defaults
+    const defaultsManager = new DefaultsManager();
+    defaultsManager.resetToDefaults();
+    
+    // Reset form inputs
+    document.getElementById('adults').value = '1';
+    document.getElementById('children').value = '0';
+    document.getElementById('dogs').value = '0';
+    document.getElementById('cats').value = '0';
+    document.getElementById('duration').value = '1';
+    document.getElementById('unit-system').value = 'imperial';
+    
+    // Reset checkboxes
+    const checkboxes = document.querySelectorAll('.category-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = true;
+    });
+    
+    // Update the table
+    updateTable();
+    
+    // Show success message
+    showToast('Settings reset to defaults');
+}
+
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.classList.add('toast-message');
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    // Trigger animation
+    setTimeout(() => toast.classList.add('show'), 100);
+    
+    // Remove toast after animation
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }

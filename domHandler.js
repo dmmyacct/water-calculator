@@ -1,6 +1,7 @@
 import SupplyCalculator from './SupplyCalculator.js';
 import { formatNumber, debounce, convertLiquidMeasurement } from './utils.js';
 import { categoryGroups, categories } from './data.js';
+import { DefaultsManager } from './defaultsManager.js';
 
 let currentLiquidUnit = 'gallons'; // Default unit
 
@@ -52,6 +53,15 @@ function generateCategoryGroups() {
         const buttonContainer = document.createElement('div');
         buttonContainer.classList.add('group-buttons');
         
+        const editDefaultsBtn = document.createElement('button');
+        editDefaultsBtn.innerHTML = '⚙️';
+        editDefaultsBtn.title = 'Edit Default Values';
+        editDefaultsBtn.classList.add('edit-defaults-btn');
+        editDefaultsBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            showDefaultsEditor(group);
+        });
+        
         const selectGroupBtn = document.createElement('button');
         selectGroupBtn.innerHTML = '✓';
         selectGroupBtn.title = 'Select all in group';
@@ -68,6 +78,7 @@ function generateCategoryGroups() {
             updateGroupCheckboxes(groupDiv, false);
         });
         
+        buttonContainer.appendChild(editDefaultsBtn);
         buttonContainer.appendChild(selectGroupBtn);
         buttonContainer.appendChild(deselectGroupBtn);
         
@@ -418,4 +429,125 @@ function updateValue(input, change) {
     const newValue = Math.max(min, currentValue + change);
     input.value = newValue;
     input.dispatchEvent(new Event('change'));
+}
+
+function showDefaultsEditor(group) {
+    const modal = document.createElement('div');
+    modal.classList.add('defaults-modal');
+    
+    const modalContent = document.createElement('div');
+    modalContent.classList.add('defaults-modal-content');
+    
+    const header = document.createElement('h3');
+    header.textContent = `Edit Default Values - ${group.name}`;
+    
+    const itemsContainer = document.createElement('div');
+    itemsContainer.classList.add('defaults-items');
+    
+    // Create input fields for each item in the category
+    group.categories.forEach(categoryKey => {
+        const category = categories[categoryKey];
+        category.items.forEach(item => {
+            const itemEditor = createItemEditor(item);
+            itemsContainer.appendChild(itemEditor);
+        });
+    });
+    
+    // Add save and cancel buttons
+    const buttonContainer = document.createElement('div');
+    buttonContainer.classList.add('modal-buttons');
+    
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = 'Save Changes';
+    saveBtn.addEventListener('click', () => saveDefaultValues(modal));
+    
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.addEventListener('click', () => modal.remove());
+    
+    buttonContainer.appendChild(saveBtn);
+    buttonContainer.appendChild(cancelBtn);
+    
+    modalContent.appendChild(header);
+    modalContent.appendChild(itemsContainer);
+    modalContent.appendChild(buttonContainer);
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+}
+
+function createItemEditor(item) {
+    const container = document.createElement('div');
+    container.classList.add('item-editor');
+    
+    const nameLabel = document.createElement('div');
+    nameLabel.textContent = item.name;
+    
+    const inputs = {
+        perAdultPerDay: createNumberInput(item.perAdultPerDay, 'Per Adult/Day', 'adult'),
+        perChildPerDay: createNumberInput(item.perChildPerDay, 'Per Child/Day', 'child'),
+        perDogPerDay: createNumberInput(item.perDogPerDay, 'Per Dog/Day', 'dog'),
+        perCatPerDay: createNumberInput(item.perCatPerDay, 'Per Cat/Day', 'cat')
+    };
+    
+    container.appendChild(nameLabel);
+    Object.values(inputs).forEach(input => container.appendChild(input));
+    
+    return container;
+}
+
+function createNumberInput(value, label, type) {
+    const wrapper = document.createElement('div');
+    wrapper.classList.add('number-input-wrapper');
+    
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.value = value || 0;
+    input.step = 'any';
+    input.min = 0;
+    input.dataset.type = type; // Add data attribute for type
+    
+    const labelElement = document.createElement('label');
+    labelElement.textContent = label;
+    
+    wrapper.appendChild(labelElement);
+    wrapper.appendChild(input);
+    
+    return wrapper;
+}
+
+/**
+ * Saves the default values from the modal editor
+ * @param {HTMLElement} modal - The modal element containing the editors
+ */
+function saveDefaultValues(modal) {
+    const defaultsManager = new DefaultsManager();
+    const itemEditors = modal.querySelectorAll('.item-editor');
+    
+    itemEditors.forEach(editor => {
+        const itemName = editor.querySelector('div').textContent; // Get item name from first div
+        const inputs = editor.querySelectorAll('input[type="number"]');
+        
+        // Get values from inputs in order (adult, child, dog, cat)
+        const [adultInput, childInput, dogInput, catInput] = inputs;
+        
+        // Save each value if it's different from 0
+        if (adultInput?.value) {
+            defaultsManager.setItemDefault(itemName, 'perAdultPerDay', parseFloat(adultInput.value));
+        }
+        if (childInput?.value) {
+            defaultsManager.setItemDefault(itemName, 'perChildPerDay', parseFloat(childInput.value));
+        }
+        if (dogInput?.value) {
+            defaultsManager.setItemDefault(itemName, 'perDogPerDay', parseFloat(dogInput.value));
+        }
+        if (catInput?.value) {
+            defaultsManager.setItemDefault(itemName, 'perCatPerDay', parseFloat(catInput.value));
+        }
+    });
+
+    // Update the table with new values
+    updateTable();
+    
+    // Close the modal
+    modal.remove();
 }

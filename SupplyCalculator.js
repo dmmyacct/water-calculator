@@ -1,6 +1,7 @@
 // Import necessary modules
 import { categories } from './data.js';
 import { consolidateItems } from './utils.js';
+import { DefaultsManager } from './defaultsManager.js';
 
 // Define the SupplyCalculator class
 export default class SupplyCalculator {
@@ -18,6 +19,7 @@ export default class SupplyCalculator {
         this.duration = inputs.duration;
         this.selectedCategories = selectedCategories;
         this.allItems = []; // Array to store all items before consolidation
+        this.defaultsManager = new DefaultsManager();
     }
 
     /**
@@ -31,24 +33,16 @@ export default class SupplyCalculator {
             if (category && category.items) {
                 category.items.forEach(item => {
                     // Calculate per-day requirements for adults
-                    const perAdult = (item.perAdultPerDay !== undefined) 
-                        ? item.perAdultPerDay * this.duration 
-                        : (item.perPersonPerDay !== undefined ? item.perPersonPerDay * this.duration : 0);
+                    const perAdult = this.getItemQuantity(item, 'perAdultPerDay') * this.duration;
                     
                     // Calculate per-day requirements for children
-                    const perChild = (item.perChildPerDay !== undefined) 
-                        ? item.perChildPerDay * this.duration 
-                        : (item.perPersonPerDay !== undefined ? item.perPersonPerDay * this.duration : 0);
+                    const perChild = this.getItemQuantity(item, 'perChildPerDay') * this.duration;
                     
                     // Calculate per-day requirements for dogs
-                    const perDog = (item.perDogPerDay !== undefined) 
-                        ? item.perDogPerDay * this.duration 
-                        : (item.perAnimalPerDay !== undefined ? item.perAnimalPerDay * this.duration : 0);
+                    const perDog = this.getItemQuantity(item, 'perDogPerDay') * this.duration;
                     
                     // Calculate per-day requirements for cats
-                    const perCat = (item.perCatPerDay !== undefined) 
-                        ? item.perCatPerDay * this.duration 
-                        : (item.perAnimalPerDay !== undefined ? item.perAnimalPerDay * this.duration : 0);
+                    const perCat = this.getItemQuantity(item, 'perCatPerDay') * this.duration;
 
                     // Handle one-time items and items shared among group members
                     let perPerson = item.perPerson !== undefined ? item.perPerson : 0;
@@ -120,5 +114,10 @@ export default class SupplyCalculator {
         const consolidatedItems = this.generateAllItems();
         // Calculate total quantities for each item
         return this.calculateTotals(consolidatedItems);
+    }
+
+    getItemQuantity(item, type) {
+        const defaultValue = this.defaultsManager.getItemDefault(item.name, type);
+        return defaultValue !== undefined ? defaultValue : item[type];
     }
 }

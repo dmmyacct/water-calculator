@@ -382,6 +382,7 @@ export function initialize() {
     generateCategoryGroups();
     initializeInputControls();
     addLiquidUnitSelector();
+    addSearchBar();
 
     // Add event listeners to all inputs
     const inputs = document.querySelectorAll('#supply-form input, #supply-form select');
@@ -647,4 +648,55 @@ function setupStickyCategoryHeaders() {
 
     tableSection.addEventListener('scroll', updateStickyHeaders);
     updateStickyHeaders(); // Initial call to set the correct header
+}
+
+function addSearchBar() {
+    const tableSection = document.querySelector('#table-section');
+    const searchContainer = document.createElement('div');
+    searchContainer.classList.add('search-container');
+    
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.id = 'supply-search';
+    searchInput.placeholder = 'Search supplies...';
+    
+    // Add search event listener
+    searchInput.addEventListener('input', debounce(filterSupplyTable, 300));
+    
+    searchContainer.appendChild(searchInput);
+    tableSection.insertBefore(searchContainer, tableSection.firstChild);
+}
+
+function filterSupplyTable() {
+    const searchTerm = document.getElementById('supply-search').value.toLowerCase();
+    const rows = document.querySelectorAll('#supply-table tbody tr');
+    
+    let currentGroup = null;
+    let groupHasVisibleItems = false;
+    
+    rows.forEach(row => {
+        if (row.classList.contains('category-header')) {
+            // If we have a previous group, show/hide it based on whether it had visible items
+            if (currentGroup) {
+                currentGroup.style.display = groupHasVisibleItems ? '' : 'none';
+            }
+            // Start new group
+            currentGroup = row;
+            groupHasVisibleItems = false;
+        } else {
+            const itemName = row.cells[0]?.textContent.toLowerCase() || '';
+            const category = row.cells[1]?.textContent.toLowerCase() || '';
+            const isMatch = itemName.includes(searchTerm) || category.includes(searchTerm);
+            
+            row.style.display = isMatch ? '' : 'none';
+            if (isMatch) {
+                groupHasVisibleItems = true;
+            }
+        }
+    });
+    
+    // Handle the last group
+    if (currentGroup) {
+        currentGroup.style.display = groupHasVisibleItems ? '' : 'none';
+    }
 }

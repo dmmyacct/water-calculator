@@ -443,9 +443,42 @@ function getUnitLabel(unit) {
 }
 
 function initializeInputControls() {
-    // Add classes to input groups for styling
+    // Add tooltips to input groups
+    const tooltips = {
+        adults: {
+            title: "Number of Adults (18+ years)",
+            help: "Include all household members aged 18 and above"
+        },
+        children: {
+            title: "Number of Children (under 18)",
+            help: "Include all household members under 18 years of age"
+        },
+        dogs: {
+            title: "Number of Dogs",
+            help: "Include all dogs in your household"
+        },
+        cats: {
+            title: "Number of Cats",
+            help: "Include all cats in your household"
+        },
+        duration: {
+            title: "Duration of Supply",
+            help: "Select how many days of supplies you want to prepare"
+        },
+        'liquid-unit': {
+            title: "Liquid Measurement Unit",
+            help: "Choose your preferred unit for liquid measurements"
+        }
+    };
+
+    // Add help icons and tooltips to each input group
     document.querySelectorAll('.input-group').forEach(group => {
         const input = group.querySelector('input, select');
+        if (input && tooltips[input.id]) {
+            addHelpIcon(group, tooltips[input.id]);
+        }
+
+        // Add input-specific classes
         if (input) {
             const type = input.id;
             if (['adults', 'children'].includes(type)) {
@@ -460,6 +493,69 @@ function initializeInputControls() {
         }
     });
 
+    // Initialize spinbutton controls
+    initializeSpinButtons();
+}
+
+function addHelpIcon(group, tooltipInfo) {
+    const labelContainer = document.createElement('div');
+    labelContainer.classList.add('label-container');
+    
+    // Move the existing label into the container
+    const existingLabel = group.querySelector('label');
+    labelContainer.appendChild(existingLabel);
+    
+    // Create help icon
+    const helpIcon = document.createElement('span');
+    helpIcon.classList.add('help-icon');
+    helpIcon.innerHTML = '?';
+    helpIcon.setAttribute('role', 'button');
+    helpIcon.setAttribute('tabindex', '0');
+    helpIcon.setAttribute('aria-label', 'Help');
+    
+    // Create tooltip
+    const tooltip = document.createElement('div');
+    tooltip.classList.add('tooltip');
+    
+    const tooltipTitle = document.createElement('strong');
+    tooltipTitle.textContent = tooltipInfo.title;
+    
+    const tooltipText = document.createElement('p');
+    tooltipText.textContent = tooltipInfo.help;
+    
+    tooltip.appendChild(tooltipTitle);
+    tooltip.appendChild(tooltipText);
+    
+    // Add tooltip to help icon
+    helpIcon.appendChild(tooltip);
+    
+    // Add help icon to label container
+    labelContainer.appendChild(helpIcon);
+    
+    // Insert label container at the start of the input group
+    group.insertBefore(labelContainer, group.firstChild);
+    
+    // Add keyboard support for accessibility
+    helpIcon.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            helpIcon.classList.toggle('tooltip-active');
+        }
+    });
+    
+    // Add click support
+    helpIcon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        helpIcon.classList.toggle('tooltip-active');
+    });
+    
+    // Close tooltip when clicking outside
+    document.addEventListener('click', () => {
+        helpIcon.classList.remove('tooltip-active');
+    });
+}
+
+function initializeSpinButtons() {
     // Convert number inputs to spinbutton controls
     document.querySelectorAll('input[type="number"]').forEach(input => {
         const container = document.createElement('div');

@@ -584,3 +584,112 @@ footer {
 #supply-search::placeholder {
     color: #95a5a6;
 }
+
+/* Add these styles */
+.label-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+}
+
+.help-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #2c3e50;
+    color: white;
+    font-size: 12px;
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+}
+
+.help-icon:hover,
+.help-icon:focus {
+    background: #34495e;
+}
+
+.tooltip {
+    display: none;
+    position: absolute;
+    left: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #2c3e50;
+    color: white;
+    padding: 10px;
+    border-radius: 4px;
+    width: 200px;
+    z-index: 100;
+    font-size: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.tooltip::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-style: solid;
+    border-width: 6px 6px 6px 0;
+    border-color: transparent #2c3e50 transparent transparent;
+}
+
+.help-icon:hover .tooltip,
+.help-icon:focus .tooltip,
+.help-icon.tooltip-active .tooltip {
+    display: block;
+}
+
+.tooltip strong {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 13px;
+}
+
+.tooltip p {
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Update existing input group styles */
+.input-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .tooltip {
+        width: 160px;
+        font-size: 11px;
+    }
+    
+    .help-icon {
+        width: 16px;
+        height: 16px;
+        font-size: 11px;
+    }
+}
+
+/* Accessibility focus styles */
+.help-icon:focus {
+    outline: 2px solid #3498db;
+    outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (forced-colors: active) {
+    .help-icon {
+        border: 1px solid ButtonText;
+    }
+    
+    .help-icon:focus {
+        outline: 2px solid ButtonText;
+    }
+}

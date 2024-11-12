@@ -84,8 +84,23 @@ function generateCategoryGroups() {
         buttonContainer.appendChild(selectGroupBtn);
         buttonContainer.appendChild(deselectGroupBtn);
         
-        const groupTitle = document.createElement('h4');
-        groupTitle.textContent = group.name;
+        const groupTitle = document.createElement('div');
+        groupTitle.classList.add('group-title-wrapper');
+        
+        const titleText = document.createElement('h4');
+        titleText.textContent = group.name;
+        
+        const infoIcon = document.createElement('span');
+        infoIcon.classList.add('info-icon');
+        infoIcon.innerHTML = 'ⓘ';
+        
+        const tooltip = document.createElement('div');
+        tooltip.classList.add('category-tooltip');
+        tooltip.textContent = group.description;
+        
+        groupTitle.appendChild(titleText);
+        groupTitle.appendChild(infoIcon);
+        groupTitle.appendChild(tooltip);
         
         titleContainer.appendChild(buttonContainer);
         titleContainer.appendChild(groupTitle);
@@ -101,15 +116,32 @@ function generateCategoryGroups() {
             const category = categories[categoryKey];
             if (category) {
                 const label = document.createElement('label');
+                const labelWrapper = document.createElement('div');
+                labelWrapper.classList.add('category-label-wrapper');
+                
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
                 checkbox.classList.add('category-checkbox');
                 checkbox.value = categoryKey;
-                checkbox.checked = true; // Default to checked
+                checkbox.checked = true;
                 checkbox.addEventListener('change', () => updateTable());
 
-                label.appendChild(checkbox);
-                label.appendChild(document.createTextNode(` ${category.name}`));
+                const labelText = document.createTextNode(` ${category.name}`);
+                
+                const categoryInfoIcon = document.createElement('span');
+                categoryInfoIcon.classList.add('info-icon', 'category-info');
+                categoryInfoIcon.innerHTML = 'ⓘ';
+                
+                const categoryTooltip = document.createElement('div');
+                categoryTooltip.classList.add('category-tooltip');
+                categoryTooltip.textContent = category.description;
+                
+                labelWrapper.appendChild(checkbox);
+                labelWrapper.appendChild(labelText);
+                labelWrapper.appendChild(categoryInfoIcon);
+                labelWrapper.appendChild(categoryTooltip);
+                
+                label.appendChild(labelWrapper);
                 checkboxContainer.appendChild(label);
             }
         });

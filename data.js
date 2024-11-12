@@ -26,26 +26,32 @@ export const dailyRequirements = {
 export const categoryGroups = {
     critical: {
         name: "Critical Supplies",
+        description: "Essential items needed for immediate survival, including water and food supplies. These should be your top priority.",
         categories: ["water", "food"]
     },
     nutrition: {
         name: "Nutrition",
+        description: "Detailed nutritional requirements and supplements to maintain health during emergency situations.",
         categories: ["nutrition"]
     },
     essential: {
         name: "Essential Supplies",
+        description: "Medical and first-aid supplies crucial for treating injuries and maintaining health in emergencies.",
         categories: ["medical"]
     },
     comfort: {
         name: "Comfort Supplies",
+        description: "Items that improve quality of life during emergencies, including hygiene products and basic shelter needs.",
         categories: ["hygiene", "communication", "shelter", "tools"]
     },
     powerAndSecurity: {
         name: "Power & Security",
+        description: "Equipment and supplies for maintaining power, light, and personal security during emergencies.",
         categories: ["power", "security"]
     },
     cookingAndGear: {
         name: "Cooking & Gear",
+        description: "Equipment for food preparation and general survival gear for emergency situations.",
         categories: ["cooking", "gear"]
     }
 };
@@ -54,6 +60,7 @@ export const categoryGroups = {
 export const categories = {
     water: {
         name: "Water",
+        description: "Clean water for drinking, cooking, and basic hygiene. Essential for survival.",
         items: [
             {
                 name: "Water",
@@ -67,6 +74,7 @@ export const categories = {
     },
     food: {
         name: "Food",
+        description: "Non-perishable food items that provide necessary calories and nutrition.",
         items: [
             {
                 name: "Rice (lbs)",
@@ -94,6 +102,7 @@ export const categories = {
     },
     nutrition: {
         name: "Nutrition",
+        description: "Specific nutritional requirements including calories, protein, and essential nutrients.",
         items: [
             {
                 name: "Calories",
@@ -131,6 +140,7 @@ export const categories = {
     },
     medical: {
         name: "Medical Supplies",
+        description: "First aid supplies and basic medical equipment for treating injuries and illness.",
         items: [
             {
                 name: "Basic First-Aid Kit",
@@ -148,6 +158,7 @@ export const categories = {
     },
     hygiene: {
         name: "Sanitation & Hygiene",
+        description: "Items for maintaining cleanliness and preventing disease in emergency situations.",
         items: [
             {
                 name: "Toilet Paper (rolls)",
@@ -159,6 +170,7 @@ export const categories = {
     },
     communication: {
         name: "Communication",
+        description: "Equipment to stay informed and maintain contact during emergencies.",
         items: [
             {
                 name: "Battery-powered Radio",
@@ -170,6 +182,7 @@ export const categories = {
     },
     shelter: {
         name: "Shelter",
+        description: "Equipment and supplies for creating or maintaining emergency shelter.",
         items: [
             {
                 name: "Tent",
@@ -181,6 +194,7 @@ export const categories = {
     },
     tools: {
         name: "Tools & Equipment",
+        description: "Essential tools for emergency repairs and survival situations.",
         items: [
             {
                 name: "Multi-tool",
@@ -192,6 +206,7 @@ export const categories = {
     },
     power: {
         name: "Power & Energy",
+        description: "Equipment and supplies for maintaining electrical power and lighting.",
         items: [
             {
                 name: "Batteries (AA)",
@@ -203,6 +218,7 @@ export const categories = {
     },
     cooking: {
         name: "Cooking and Heating",
+        description: "Equipment for food preparation and maintaining warmth in emergencies.",
         items: [
             {
                 name: "Portable Stove",
@@ -214,6 +230,7 @@ export const categories = {
     },
     security: {
         name: "Personal Security",
+        description: "Items for maintaining personal and family safety during emergencies.",
         items: [
             {
                 name: "Pepper Spray",

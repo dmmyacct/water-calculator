@@ -480,6 +480,8 @@ export function initialize() {
 
     // Initial table update
     updateTable();
+
+    initializeStickyHeaders();
 }
 
 /**
@@ -1247,4 +1249,34 @@ function exportToCSV() {
     URL.revokeObjectURL(url);
     
     showToast('CSV exported successfully');
+}
+
+function initializeStickyHeaders() {
+    const tableContainer = document.querySelector('.table-container');
+    const categoryHeaders = document.querySelectorAll('.category-header');
+    
+    tableContainer.addEventListener('scroll', () => {
+        let activeHeader = null;
+        const containerTop = tableContainer.getBoundingClientRect().top;
+        const scrollTop = tableContainer.scrollTop;
+        
+        categoryHeaders.forEach((header) => {
+            const headerTop = header.offsetTop - scrollTop;
+            const nextHeader = header.nextElementSibling;
+            const nextHeaderTop = nextHeader ? nextHeader.offsetTop - scrollTop : Infinity;
+            
+            if (headerTop <= containerTop && nextHeaderTop > containerTop) {
+                activeHeader = header;
+            }
+        });
+        
+        // Update active state
+        categoryHeaders.forEach(header => {
+            if (header === activeHeader) {
+                header.classList.add('sticky-active');
+            } else {
+                header.classList.remove('sticky-active');
+            }
+        });
+    });
 }

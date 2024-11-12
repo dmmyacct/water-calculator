@@ -9,19 +9,81 @@ let currentLiquidUnit = 'gallons'; // Default unit
  */
 function generateCategoryGroups() {
     const checkboxGroupContainer = document.querySelector('.checkbox-group');
-    checkboxGroupContainer.innerHTML = ''; // Clear existing groups if any
+    checkboxGroupContainer.innerHTML = ''; // Clear existing groups
+
+    // Add global category controls
+    const controlsDiv = document.createElement('div');
+    controlsDiv.classList.add('category-controls');
+    
+    const selectAllBtn = document.createElement('button');
+    selectAllBtn.innerHTML = '✓ All';
+    selectAllBtn.type = 'button'; // Prevent form submission
+    selectAllBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        updateAllCheckboxes(true);
+    });
+    
+    const deselectAllBtn = document.createElement('button');
+    deselectAllBtn.innerHTML = '✕ All';
+    deselectAllBtn.type = 'button'; // Prevent form submission
+    deselectAllBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        updateAllCheckboxes(false);
+    });
+    
+    controlsDiv.appendChild(selectAllBtn);
+    controlsDiv.appendChild(deselectAllBtn);
+    checkboxGroupContainer.appendChild(controlsDiv);
 
     // Iterate over each category group
     Object.values(categoryGroups).forEach(group => {
         const groupDiv = document.createElement('div');
         groupDiv.classList.add('category-group');
 
-        // Create group header
-        const groupHeader = document.createElement('h4');
-        groupHeader.textContent = group.name;
+        // Create group header with new structure
+        const groupHeader = document.createElement('div');
+        groupHeader.classList.add('group-controls');
+        
+        // Create container for buttons and title
+        const titleContainer = document.createElement('div');
+        titleContainer.classList.add('group-title-container');
+        
+        // Create buttons container and add before title
+        const buttonContainer = document.createElement('div');
+        buttonContainer.classList.add('group-buttons');
+        
+        const selectGroupBtn = document.createElement('button');
+        selectGroupBtn.innerHTML = '✓';
+        selectGroupBtn.title = 'Select all in group';
+        selectGroupBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            updateGroupCheckboxes(groupDiv, true);
+        });
+        
+        const deselectGroupBtn = document.createElement('button');
+        deselectGroupBtn.innerHTML = '✕';
+        deselectGroupBtn.title = 'Deselect all in group';
+        deselectGroupBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            updateGroupCheckboxes(groupDiv, false);
+        });
+        
+        buttonContainer.appendChild(selectGroupBtn);
+        buttonContainer.appendChild(deselectGroupBtn);
+        
+        const groupTitle = document.createElement('h4');
+        groupTitle.textContent = group.name;
+        
+        titleContainer.appendChild(buttonContainer);
+        titleContainer.appendChild(groupTitle);
+        groupHeader.appendChild(titleContainer);
         groupDiv.appendChild(groupHeader);
 
-        // Iterate over categories within the group
+        // Create checkbox container
+        const checkboxContainer = document.createElement('div');
+        checkboxContainer.classList.add('checkbox-container');
+
+        // Add categories within the group
         group.categories.forEach(categoryKey => {
             const category = categories[categoryKey];
             if (category) {
@@ -31,16 +93,45 @@ function generateCategoryGroups() {
                 checkbox.classList.add('category-checkbox');
                 checkbox.value = categoryKey;
                 checkbox.checked = true; // Default to checked
+                checkbox.addEventListener('change', () => updateTable());
 
                 label.appendChild(checkbox);
                 label.appendChild(document.createTextNode(` ${category.name}`));
-                groupDiv.appendChild(label);
+                checkboxContainer.appendChild(label);
             }
         });
 
-        // Append the group to the container
+        groupDiv.appendChild(checkboxContainer);
+
         checkboxGroupContainer.appendChild(groupDiv);
     });
+}
+
+/**
+ * Updates all checkboxes to the specified state and triggers table update
+ * @param {boolean} checked - Whether to check or uncheck the boxes
+ */
+function updateAllCheckboxes(checked) {
+    const checkboxes = document.querySelectorAll('.category-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = checked;
+    });
+    // Explicitly call updateTable without debounce
+    updateTable();
+}
+
+/**
+ * Updates all checkboxes within a group to the specified state and triggers table update
+ * @param {HTMLElement} groupDiv - The group container element
+ * @param {boolean} checked - Whether to check or uncheck the boxes
+ */
+function updateGroupCheckboxes(groupDiv, checked) {
+    const checkboxes = groupDiv.querySelectorAll('.category-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = checked;
+    });
+    // Explicitly call updateTable without debounce
+    updateTable();
 }
 
 /**
@@ -69,134 +160,105 @@ export function getInputValues() {
  * @returns {Array<string>} - An array of selected category keys.
  */
 export function getSelectedCategories() {
-    const selected = [];
-    const checkboxes = document.querySelectorAll('.category-checkbox');
-    checkboxes.forEach(checkbox => {
-        if (checkbox.checked) {
-            selected.push(checkbox.value);
-        }
-    });
-    return selected;
+    const checkboxes = document.querySelectorAll('.category-checkbox:checked');
+    return Array.from(checkboxes).map(checkbox => checkbox.value);
 }
 
 /**
- * Generates the table header based on the number of adults, children, dogs, and cats.
- * @param {number} adults
- * @param {number} children
- * @param {number} dogs
- * @param {number} cats
+ * Generates the table header based on current inputs
+ * @param {number} adults - Number of adults
+ * @param {number} children - Number of children
+ * @param {number} dogs - Number of dogs
+ * @param {number} cats - Number of cats
  */
-export function generateTableHeader(adults, children, dogs, cats) {
-    const theadRow = document.querySelector('#supply-table thead tr');
-    let headerHTML = '<th>Item</th>';
+function generateTableHeader(adults, children, dogs, cats) {
+    const tableHead = document.querySelector('#supply-table thead');
+    const headerRow = document.createElement('tr');
+    headerRow.innerHTML = '<th>Item</th>';
 
-    // Add columns for each adult
-    for (let i = 1; i <= adults; i++) {
-        headerHTML += `<th>Adult ${i}</th>`;
+    // Add columns for adults
+    for (let i = 0; i < adults; i++) {
+        headerRow.innerHTML += `<th>Adult ${i + 1}</th>`;
     }
 
-    // Add columns for each child
-    for (let i = 1; i <= children; i++) {
-        headerHTML += `<th>Child ${i}</th>`;
+    // Add columns for children
+    for (let i = 0; i < children; i++) {
+        headerRow.innerHTML += `<th>Child ${i + 1}</th>`;
     }
 
-    // Add columns for each dog
-    for (let i = 1; i <= dogs; i++) {
-        headerHTML += `<th>Dog ${i}</th>`;
+    // Add columns for dogs
+    for (let i = 0; i < dogs; i++) {
+        headerRow.innerHTML += `<th>Dog ${i + 1}</th>`;
     }
 
-    // Add columns for each cat
-    for (let i = 1; i <= cats; i++) {
-        headerHTML += `<th>Cat ${i}</th>`;
+    // Add columns for cats
+    for (let i = 0; i < cats; i++) {
+        headerRow.innerHTML += `<th>Cat ${i + 1}</th>`;
     }
 
-    // Add Total Needed column
-    headerHTML += '<th>Total Needed</th>';
-    theadRow.innerHTML = headerHTML;
+    headerRow.innerHTML += '<th>Total Needed</th>';
+
+    // Clear existing header and add the new one
+    tableHead.innerHTML = '';
+    tableHead.appendChild(headerRow);
 }
 
 /**
  * Populates the table rows with supply data
+ * @param {Array} supplyList - List of supplies to display
+ * @param {Object} inputs - Current input values for adults, children, dogs, and cats
  */
-export function populateTableRows(items, adults, children, dogs, cats) {
-    const tbody = document.querySelector('#supply-table tbody');
-    tbody.innerHTML = '';
+function populateTableRows(supplyList, inputs) {
+    const tableBody = document.querySelector('#supply-table tbody');
+    tableBody.innerHTML = ''; // Clear existing rows
 
-    items.forEach(item => {
+    if (!supplyList || supplyList.length === 0) {
+        const emptyRow = document.createElement('tr');
+        const colspan = 2 + inputs.adults + inputs.children + inputs.dogs + inputs.cats;
+        emptyRow.innerHTML = `<td colspan="${colspan}">No items to display</td>`;
+        tableBody.appendChild(emptyRow);
+        return;
+    }
+
+    supplyList.forEach(item => {
         const row = document.createElement('tr');
+        let rowHTML = `<td>${item.name}</td>`;
+
+        // Add cells for each adult
+        for (let i = 0; i < inputs.adults; i++) {
+            rowHTML += `<td>${formatNumber(item.perAdult || 0)}</td>`;
+        }
+
+        // Add cells for each child
+        for (let i = 0; i < inputs.children; i++) {
+            rowHTML += `<td>${formatNumber(item.perChild || 0)}</td>`;
+        }
+
+        // Add cells for each dog
+        for (let i = 0; i < inputs.dogs; i++) {
+            rowHTML += `<td>${formatNumber(item.perDog || 0)}</td>`;
+        }
+
+        // Add cells for each cat
+        for (let i = 0; i < inputs.cats; i++) {
+            rowHTML += `<td>${formatNumber(item.perCat || 0)}</td>`;
+        }
+
+        // Add total column
+        let displayTotal = item.total;
+        let displayUnit = item.unit;
         
-        // Item Name cell
-        const nameCell = document.createElement('td');
-        nameCell.textContent = item.name;
-        row.appendChild(nameCell);
-
-        // Helper function to create individual cells
-        const createCell = (value) => {
-            const cell = document.createElement('td');
-            if (value > 0) {
-                // Convert liquid measurements if the item is water
-                if (item.name.toLowerCase().includes('water')) {
-                    value = convertLiquidMeasurement(value, currentLiquidUnit);
-                }
-                cell.textContent = formatNumber(value);
-            } else {
-                cell.textContent = '';
-                cell.classList.add('blocked-cell');
-            }
-            return cell;
-        };
-
-        // Create cells for each group
-        if (adults > 0) {
-            row.appendChild(createCell(item.perAdult));
+        // Convert liquid measurements if the item is water
+        if (item.name.toLowerCase().includes('water')) {
+            displayTotal = convertLiquidMeasurement(item.total, currentLiquidUnit);
+            displayUnit = currentLiquidUnit;
         }
-        if (children > 0) {
-            row.appendChild(createCell(item.perChild));
-        }
-        if (dogs > 0) {
-            row.appendChild(createCell(item.perDog));
-        }
-        if (cats > 0) {
-            row.appendChild(createCell(item.perCat));
-        }
-
-        // Total Needed cell
-        const totalCell = document.createElement('td');
-        if (item.total > 0) {
-            let displayTotal = item.total;
-            let displayUnit = item.unit;
-            
-            // Convert liquid measurements if the item is water
-            if (item.name.toLowerCase().includes('water')) {
-                displayTotal = convertLiquidMeasurement(item.total, currentLiquidUnit);
-                displayUnit = currentLiquidUnit;
-            }
-            
-            totalCell.textContent = `${formatNumber(displayTotal)} ${getUnitLabel(displayUnit)}`;
-        } else {
-            totalCell.textContent = '';
-            totalCell.classList.add('blocked-cell');
-        }
-        totalCell.classList.add('total-column');
-        row.appendChild(totalCell);
-
-        tbody.appendChild(row);
+        
+        rowHTML += `<td class="total-column">${formatNumber(displayTotal)} ${getUnitLabel(displayUnit)}</td>`;
+        
+        row.innerHTML = rowHTML;
+        tableBody.appendChild(row);
     });
-}
-
-/**
- * Populates the nutrition summary section with total nutrition information.
- * @param {Object} totalNutrition - Object containing total calories, protein, fat, and carbs.
- */
-export function populateNutritionSummary(totalNutrition) {
-    const nutritionSection = document.getElementById('nutrition-summary');
-    nutritionSection.innerHTML = `
-        <h3>Nutrition Overview</h3>
-        <p><strong>Total Calories:</strong> ${formatNumber(totalNutrition.calories)} kcal</p>
-        <p><strong>Total Protein:</strong> ${formatNumber(totalNutrition.protein)} g</p>
-        <p><strong>Total Fat:</strong> ${formatNumber(totalNutrition.fat)} g</p>
-        <p><strong>Total Carbohydrates:</strong> ${formatNumber(totalNutrition.carbs)} g</p>
-    `;
 }
 
 /**
@@ -251,22 +313,23 @@ function addLiquidUnitSelector() {
  * Initializes event listeners and updates the table on load.
  */
 export function initialize() {
-    const form = document.getElementById('supply-form');
-    
-    // Generate category groups and checkboxes
     generateCategoryGroups();
-    
-    // Add liquid unit selector
+    initializeInputControls();
     addLiquidUnitSelector();
-    
-    // Debounced update function to prevent excessive calculations
-    const debouncedUpdate = debounce(updateTable, 300);
 
-    // Add event listeners to form inputs and checkboxes
-    form.addEventListener('input', debouncedUpdate);
-    form.addEventListener('change', debouncedUpdate);
+    // Add event listeners to all inputs
+    const inputs = document.querySelectorAll('#supply-form input, #supply-form select');
+    inputs.forEach(input => {
+        input.addEventListener('change', debounce(updateTable, 300));
+    });
 
-    // Initial table generation
+    // Add event listeners to category checkboxes
+    const categoryCheckboxes = document.querySelectorAll('.category-checkbox');
+    categoryCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', debounce(updateTable, 300));
+    });
+
+    // Initial table update
     updateTable();
 }
 
@@ -276,17 +339,15 @@ export function initialize() {
 function updateTable() {
     const inputs = getInputValues();
     const selectedCategories = getSelectedCategories();
-
-    // Generate table header based on inputs
+    
+    // Update table header based on current inputs
     generateTableHeader(inputs.adults, inputs.children, inputs.dogs, inputs.cats);
-
-    // Create a new SupplyCalculator instance and get the supply list
+    
     const calculator = new SupplyCalculator(inputs, selectedCategories);
-    const { supplyList, totalNutrition } = calculator.getSupplyList();
-
-    // Populate the table and nutrition summary with calculated data
-    populateTableRows(supplyList, inputs.adults, inputs.children, inputs.dogs, inputs.cats);
-    populateNutritionSummary(totalNutrition);
+    const supplyList = calculator.getSupplyList();
+    
+    // Update table rows to match the new header structure
+    populateTableRows(supplyList, inputs);
 }
 
 /**
@@ -308,4 +369,53 @@ function getUnitLabel(unit) {
         'g': 'g'
     };
     return unitMap[unit] || unit;
+}
+
+function initializeInputControls() {
+    // Add classes to input groups for styling
+    document.querySelectorAll('.input-group').forEach(group => {
+        const input = group.querySelector('input, select');
+        if (input) {
+            const type = input.id;
+            if (['adults', 'children'].includes(type)) {
+                group.classList.add('people-input');
+            } else if (['dogs', 'cats'].includes(type)) {
+                group.classList.add('animal-input');
+            } else if (type === 'duration') {
+                group.classList.add('duration-input');
+            } else if (type === 'liquid-unit') {
+                group.classList.add('unit-input');
+            }
+        }
+    });
+
+    // Convert number inputs to spinbutton controls
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+        const container = document.createElement('div');
+        container.className = 'spinbutton-controls';
+
+        const decrementBtn = document.createElement('button');
+        decrementBtn.type = 'button';
+        decrementBtn.textContent = '−';
+        decrementBtn.onclick = () => updateValue(input, -1);
+
+        const incrementBtn = document.createElement('button');
+        incrementBtn.type = 'button';
+        incrementBtn.textContent = '+';
+        incrementBtn.onclick = () => updateValue(input, 1);
+
+        // Replace the input with the new control group
+        input.parentNode.replaceChild(container, input);
+        container.appendChild(decrementBtn);
+        container.appendChild(input);
+        container.appendChild(incrementBtn);
+    });
+}
+
+function updateValue(input, change) {
+    const currentValue = parseInt(input.value) || 0;
+    const min = parseInt(input.min) || 0;
+    const newValue = Math.max(min, currentValue + change);
+    input.value = newValue;
+    input.dispatchEvent(new Event('change'));
 }

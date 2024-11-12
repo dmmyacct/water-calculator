@@ -464,6 +464,7 @@ export function initialize() {
     addUnitSystemSelector();
     addSearchBar();
     addResetButton();
+    addSaveExportButtons();
     
     // Add event listeners to all inputs
     const inputs = document.querySelectorAll('#supply-form input, #supply-form select');
@@ -971,4 +972,279 @@ function showToast(message) {
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 300);
     }, 3000);
+}
+
+/**
+ * Adds save and export buttons to the table section
+ */
+function addSaveExportButtons() {
+    const tableSection = document.querySelector('#table-section');
+    const buttonContainer = document.createElement('div');
+    buttonContainer.classList.add('action-buttons-container');
+    
+    // Primary Actions Group
+    const primaryActions = document.createElement('div');
+    primaryActions.classList.add('action-buttons-group', 'primary-actions');
+    
+    const saveButton = document.createElement('button');
+    saveButton.innerHTML = '💾 Save Plan';
+    saveButton.classList.add('action-btn', 'primary-btn');
+    saveButton.addEventListener('click', savePlan);
+    
+    const loadButton = document.createElement('button');
+    loadButton.innerHTML = '📂 Load Plan';
+    loadButton.classList.add('action-btn', 'primary-btn');
+    loadButton.addEventListener('click', loadPlan);
+    
+    primaryActions.appendChild(saveButton);
+    primaryActions.appendChild(loadButton);
+    
+    // Export Actions Group
+    const exportActions = document.createElement('div');
+    exportActions.classList.add('action-buttons-group', 'export-actions');
+    
+    const pdfButton = document.createElement('button');
+    pdfButton.innerHTML = '📄 Export PDF';
+    pdfButton.classList.add('action-btn', 'secondary-btn');
+    pdfButton.addEventListener('click', exportToPDF);
+    
+    const csvButton = document.createElement('button');
+    csvButton.innerHTML = '📊 Export CSV';
+    csvButton.classList.add('action-btn', 'secondary-btn');
+    csvButton.addEventListener('click', exportToCSV);
+    
+    exportActions.appendChild(pdfButton);
+    exportActions.appendChild(csvButton);
+    
+    buttonContainer.appendChild(primaryActions);
+    buttonContainer.appendChild(exportActions);
+    
+    // Insert buttons at the top of the table section
+    tableSection.insertBefore(buttonContainer, tableSection.firstChild);
+}
+
+/**
+ * Saves the current plan to localStorage and allows download as JSON
+ */
+function savePlan() {
+    const plan = {
+        inputs: getInputValues(),
+        selectedCategories: getSelectedCategories(),
+        timestamp: new Date().toISOString(),
+        name: `Emergency Supply Plan - ${new Date().toLocaleDateString()}`
+    };
+    
+    // Save to localStorage
+    const savedPlans = JSON.parse(localStorage.getItem('savedPlans') || '[]');
+    savedPlans.push(plan);
+    localStorage.setItem('savedPlans', JSON.stringify(savedPlans));
+    
+    // Create downloadable file
+    const blob = new Blob([JSON.stringify(plan, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `emergency-supply-plan-${new Date().toISOString()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showToast('Plan saved successfully');
+}
+
+/**
+ * Loads a saved plan from a file or localStorage
+ */
+function loadPlan() {
+    const modal = document.createElement('div');
+    modal.classList.add('load-plan-modal');
+    
+    const modalContent = document.createElement('div');
+    modalContent.classList.add('load-plan-content');
+    
+    const header = document.createElement('h3');
+    header.textContent = 'Load Saved Plan';
+    
+    // File upload section
+    const fileSection = document.createElement('div');
+    fileSection.classList.add('file-upload-section');
+    
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.json';
+    fileInput.addEventListener('change', handleFileUpload);
+    
+    const fileLabel = document.createElement('label');
+    fileLabel.textContent = 'Upload Plan File';
+    fileLabel.appendChild(fileInput);
+    
+    fileSection.appendChild(fileLabel);
+    
+    // Saved plans section
+    const savedSection = document.createElement('div');
+    savedSection.classList.add('saved-plans-section');
+    
+    const savedPlans = JSON.parse(localStorage.getItem('savedPlans') || '[]');
+    if (savedPlans.length > 0) {
+        const savedHeader = document.createElement('h4');
+        savedHeader.textContent = 'Saved Plans';
+        savedSection.appendChild(savedHeader);
+        
+        savedPlans.forEach((plan, index) => {
+            const planButton = document.createElement('button');
+            planButton.classList.add('saved-plan-btn');
+            planButton.innerHTML = `
+                <span>${plan.name}</span>
+                <span class="plan-date">${new Date(plan.timestamp).toLocaleDateString()}</span>
+            `;
+            planButton.addEventListener('click', () => {
+                applySavedPlan(plan);
+                modal.remove();
+            });
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.classList.add('delete-plan-btn');
+            deleteBtn.innerHTML = '🗑️';
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteSavedPlan(index);
+                planButton.remove();
+                if (savedSection.querySelectorAll('.saved-plan-btn').length === 0) {
+                    savedSection.innerHTML = '<p>No saved plans</p>';
+                }
+            });
+            
+            planButton.appendChild(deleteBtn);
+            savedSection.appendChild(planButton);
+        });
+    } else {
+        savedSection.innerHTML = '<p>No saved plans</p>';
+    }
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = 'Close';
+    closeBtn.classList.add('close-btn');
+    closeBtn.addEventListener('click', () => modal.remove());
+    
+    modalContent.appendChild(header);
+    modalContent.appendChild(fileSection);
+    modalContent.appendChild(savedSection);
+    modalContent.appendChild(closeBtn);
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+}
+
+/**
+ * Handles file upload for loading a plan
+ * @param {Event} event - The file input change event
+ */
+function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const plan = JSON.parse(e.target.result);
+                applySavedPlan(plan);
+                event.target.closest('.load-plan-modal').remove();
+            } catch (error) {
+                showToast('Error loading plan file', 'error');
+            }
+        };
+        reader.readAsText(file);
+    }
+}
+
+/**
+ * Applies a saved plan to the current form
+ * @param {Object} plan - The plan to apply
+ */
+function applySavedPlan(plan) {
+    // Apply input values
+    const inputs = plan.inputs;
+    Object.keys(inputs).forEach(key => {
+        const input = document.getElementById(key);
+        if (input) input.value = inputs[key];
+    });
+    
+    // Apply selected categories
+    const checkboxes = document.querySelectorAll('.category-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = plan.selectedCategories.includes(checkbox.value);
+    });
+    
+    updateTable();
+    showToast('Plan loaded successfully');
+}
+
+/**
+ * Deletes a saved plan from localStorage
+ * @param {number} index - The index of the plan to delete
+ */
+function deleteSavedPlan(index) {
+    const savedPlans = JSON.parse(localStorage.getItem('savedPlans') || '[]');
+    savedPlans.splice(index, 1);
+    localStorage.setItem('savedPlans', JSON.stringify(savedPlans));
+    showToast('Plan deleted');
+}
+
+/**
+ * Exports the current supply table to PDF
+ */
+function exportToPDF() {
+    try {
+        const element = document.querySelector('#supply-table');
+        const opt = {
+            margin: 1,
+            filename: `emergency-supply-plan-${new Date().toISOString()}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
+        };
+        
+        // Generate PDF using the globally available html2pdf
+        html2pdf().set(opt).from(element).save();
+        showToast('PDF export started');
+    } catch (error) {
+        showToast('Error exporting PDF', 'error');
+        console.error('PDF export error:', error);
+    }
+}
+
+/**
+ * Exports the current supply table to CSV
+ */
+function exportToCSV() {
+    const table = document.querySelector('#supply-table');
+    let csv = [];
+    
+    // Get headers
+    const headers = [];
+    table.querySelectorAll('th').forEach(th => headers.push(th.textContent));
+    csv.push(headers.join(','));
+    
+    // Get rows
+    table.querySelectorAll('tbody tr').forEach(tr => {
+        if (!tr.classList.contains('category-header')) {
+            const row = [];
+            tr.querySelectorAll('td').forEach(td => {
+                row.push(`"${td.textContent.trim()}"`);
+            });
+            csv.push(row.join(','));
+        }
+    });
+    
+    // Download CSV file
+    const blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `emergency-supply-plan-${new Date().toISOString()}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showToast('CSV exported successfully');
 }

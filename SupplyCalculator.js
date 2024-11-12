@@ -32,17 +32,11 @@ export default class SupplyCalculator {
             const category = categories[categoryKey];
             if (category && category.items) {
                 category.items.forEach(item => {
-                    // Calculate per-day requirements for adults
-                    const perAdult = this.getItemQuantity(item, 'perAdultPerDay') * this.duration;
-                    
-                    // Calculate per-day requirements for children
-                    const perChild = this.getItemQuantity(item, 'perChildPerDay') * this.duration;
-                    
-                    // Calculate per-day requirements for dogs
-                    const perDog = this.getItemQuantity(item, 'perDogPerDay') * this.duration;
-                    
-                    // Calculate per-day requirements for cats
-                    const perCat = this.getItemQuantity(item, 'perCatPerDay') * this.duration;
+                    // Calculate per-day requirements - use let for these variables
+                    let perAdult = this.getItemQuantity(item, 'perAdultPerDay') * this.duration;
+                    let perChild = this.getItemQuantity(item, 'perChildPerDay') * this.duration;
+                    let perDog = this.getItemQuantity(item, 'perDogPerDay') * this.duration;
+                    let perCat = this.getItemQuantity(item, 'perCatPerDay') * this.duration;
 
                     // Handle one-time items and items shared among group members
                     let perPerson = item.perPerson !== undefined ? item.perPerson : 0;
@@ -63,9 +57,24 @@ export default class SupplyCalculator {
                         perFamily = perFamily > 0 ? Math.ceil(perFamily / sharedAmong) : 0;
                     }
 
+                    // Ensure minimum quantities for certain items
+                    if (this.adults > 0 || this.children > 0) {
+                        perHousehold = Math.max(perHousehold, 1);
+                        perFamily = Math.max(perFamily, 1);
+                    }
+
+                    // Ensure pet-specific items are included if pets are present
+                    if (this.dogs > 0 && item.name.toLowerCase().includes('dog')) {
+                        perDog = Math.max(perDog, 1);
+                    }
+                    if (this.cats > 0 && item.name.toLowerCase().includes('cat')) {
+                        perCat = Math.max(perCat, 1);
+                    }
+
                     // Create new item object with calculated quantities
                     const newItem = {
                         name: item.name,
+                        category: category.name,
                         perAdult: perAdult + perPerson,
                         perChild: perChild + perPerson,
                         perDog: perDog,
@@ -80,6 +89,9 @@ export default class SupplyCalculator {
                 });
             }
         });
+
+        // For debugging, log the allItems array
+        console.log('All items before consolidation:', this.allItems);
 
         // Return consolidated items
         return consolidateItems(this.allItems);
@@ -119,5 +131,12 @@ export default class SupplyCalculator {
     getItemQuantity(item, type) {
         const defaultValue = this.defaultsManager.getItemDefault(item.name, type);
         return defaultValue !== undefined ? defaultValue : item[type];
+    }
+
+    ensureMinimumQuantities(item) {
+        if (this.adults > 0 || this.children > 0) {
+            item.perPerson = Math.max(item.perPerson || 0, 1);
+        }
+        return item;
     }
 }

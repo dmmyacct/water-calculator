@@ -21,32 +21,21 @@ export function formatNumber(num) {
 export function consolidateItems(items) {
     const itemMap = {};
 
-    // Iterate over each item to consolidate
     items.forEach(item => {
         if (!itemMap[item.name]) {
             // Initialize item in map if it doesn't exist
-            itemMap[item.name] = {
-                name: item.name,
-                perAdult: item.perAdult || 0,
-                perChild: item.perChild || 0,
-                perDog: item.perDog || 0,
-                perCat: item.perCat || 0,
-                perHousehold: item.perHousehold || 0,
-                perFamily: item.perFamily || 0,
-                unit: item.unit
-            };
+            itemMap[item.name] = { ...item };
         } else {
             // Sum up quantities for existing item
-            itemMap[item.name].perAdult += item.perAdult || 0;
-            itemMap[item.name].perChild += item.perChild || 0;
-            itemMap[item.name].perDog += item.perDog || 0;
-            itemMap[item.name].perCat += item.perCat || 0;
-            itemMap[item.name].perHousehold += item.perHousehold || 0;
-            itemMap[item.name].perFamily += item.perFamily || 0;
+            ['perAdult', 'perChild', 'perDog', 'perCat', 'perHousehold', 'perFamily'].forEach(prop => {
+                itemMap[item.name][prop] += item[prop] || 0;
+            });
         }
     });
 
-    // Return consolidated items as an array
+    // For debugging, log the consolidated items
+    console.log('Consolidated items:', Object.values(itemMap));
+
     return Object.values(itemMap);
 }
 

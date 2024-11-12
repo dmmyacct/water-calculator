@@ -183,7 +183,12 @@ export function getSelectedCategories() {
  * @param {number} cats - Number of cats
  */
 function generateTableHeader(adults, children, dogs, cats) {
-    const tableHead = document.querySelector('#supply-table thead');
+    const table = document.querySelector('#supply-table');
+    let thead = table.querySelector('thead');
+    if (!thead) {
+        thead = document.createElement('thead');
+        table.insertBefore(thead, table.firstChild); // Ensure thead is the first child
+    }
     const headerRow = document.createElement('tr');
     headerRow.innerHTML = '<th>Item</th>';
 
@@ -210,8 +215,8 @@ function generateTableHeader(adults, children, dogs, cats) {
     headerRow.innerHTML += '<th>Total Needed</th>';
 
     // Clear existing header and add the new one
-    tableHead.innerHTML = '';
-    tableHead.appendChild(headerRow);
+    thead.innerHTML = '';
+    thead.appendChild(headerRow);
 }
 
 /**
@@ -220,55 +225,84 @@ function generateTableHeader(adults, children, dogs, cats) {
  * @param {Object} inputs - Current input values for adults, children, dogs, and cats
  */
 function populateTableRows(supplyList, inputs) {
-    const tableBody = document.querySelector('#supply-table tbody');
-    tableBody.innerHTML = ''; // Clear existing rows
+    // Get reference to the table first
+    const table = document.querySelector('#supply-table');
+    
+    // Get or create tbody
+    let tbody = table.querySelector('tbody');
+    if (!tbody) {
+        tbody = document.createElement('tbody');
+        table.appendChild(tbody);
+    }
+    
+    tbody.innerHTML = ''; // Clear existing rows
 
     if (!supplyList || supplyList.length === 0) {
         const emptyRow = document.createElement('tr');
         const colspan = 2 + inputs.adults + inputs.children + inputs.dogs + inputs.cats;
         emptyRow.innerHTML = `<td colspan="${colspan}">No items to display</td>`;
-        tableBody.appendChild(emptyRow);
+        tbody.appendChild(emptyRow);
         return;
     }
 
-    supplyList.forEach(item => {
-        const row = document.createElement('tr');
-        let rowHTML = `<td>${item.name}</td>`;
-
-        // Add cells for each adult
-        for (let i = 0; i < inputs.adults; i++) {
-            rowHTML += `<td>${formatNumber(item.perAdult || 0)}</td>`;
+    // Group items by category
+    const groupedItems = supplyList.reduce((acc, item) => {
+        if (!acc[item.category]) {
+            acc[item.category] = [];
         }
+        acc[item.category].push(item);
+        return acc;
+    }, {});
 
-        // Add cells for each child
-        for (let i = 0; i < inputs.children; i++) {
-            rowHTML += `<td>${formatNumber(item.perChild || 0)}</td>`;
-        }
+    // Iterate through grouped items
+    Object.entries(groupedItems).forEach(([category, items]) => {
+        // Add category header row
+        const categoryRow = document.createElement('tr');
+        categoryRow.classList.add('category-header');
+        const colspan = 2 + inputs.adults + inputs.children + inputs.dogs + inputs.cats;
+        categoryRow.innerHTML = `<td colspan="${colspan}">${category}</td>`;
+        tbody.appendChild(categoryRow);
 
-        // Add cells for each dog
-        for (let i = 0; i < inputs.dogs; i++) {
-            rowHTML += `<td>${formatNumber(item.perDog || 0)}</td>`;
-        }
+        // Add items for this category
+        items.forEach(item => {
+            const row = document.createElement('tr');
+            let rowHTML = `<td>${item.name}</td>`;
 
-        // Add cells for each cat
-        for (let i = 0; i < inputs.cats; i++) {
-            rowHTML += `<td>${formatNumber(item.perCat || 0)}</td>`;
-        }
+            // Add cells for each adult
+            for (let i = 0; i < inputs.adults; i++) {
+                rowHTML += `<td>${formatNumber(item.perAdult || 0)}</td>`;
+            }
 
-        // Add total column
-        let displayTotal = item.total;
-        let displayUnit = item.unit;
-        
-        // Convert liquid measurements if the item is water
-        if (item.name.toLowerCase().includes('water')) {
-            displayTotal = convertLiquidMeasurement(item.total, currentLiquidUnit);
-            displayUnit = currentLiquidUnit;
-        }
-        
-        rowHTML += `<td class="total-column">${formatNumber(displayTotal)} ${getUnitLabel(displayUnit)}</td>`;
-        
-        row.innerHTML = rowHTML;
-        tableBody.appendChild(row);
+            // Add cells for each child
+            for (let i = 0; i < inputs.children; i++) {
+                rowHTML += `<td>${formatNumber(item.perChild || 0)}</td>`;
+            }
+
+            // Add cells for each dog
+            for (let i = 0; i < inputs.dogs; i++) {
+                rowHTML += `<td>${formatNumber(item.perDog || 0)}</td>`;
+            }
+
+            // Add cells for each cat
+            for (let i = 0; i < inputs.cats; i++) {
+                rowHTML += `<td>${formatNumber(item.perCat || 0)}</td>`;
+            }
+
+            // Add total column
+            let displayTotal = item.total;
+            let displayUnit = item.unit;
+            
+            // Convert liquid measurements if the item is water
+            if (item.name.toLowerCase().includes('water')) {
+                displayTotal = convertLiquidMeasurement(item.total, currentLiquidUnit);
+                displayUnit = currentLiquidUnit;
+            }
+            
+            rowHTML += `<td class="total-column">${formatNumber(displayTotal)} ${getUnitLabel(displayUnit)}</td>`;
+            
+            row.innerHTML = rowHTML;
+            tbody.appendChild(row);
+        });
     });
 }
 
@@ -359,6 +393,9 @@ function updateTable() {
     
     // Update table rows to match the new header structure
     populateTableRows(supplyList, inputs);
+
+    // Log the table structure
+    console.log('Table structure:', document.querySelector('#supply-table').outerHTML);
 }
 
 /**

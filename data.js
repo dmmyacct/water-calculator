@@ -52,11 +52,11 @@ export const categories = {
         name: "Water",
         items: [
             {
-                name: "Water (gallons)",
-                perAdultPerDay: 1,        // Gallons per adult per day
-                perChildPerDay: 0.5,      // Gallons per child per day
-                perDogPerDay: 1,          // Gallons per dog per day
-                perCatPerDay: 0.5,        // Gallons per cat per day
+                name: "Water",
+                perAdultPerDay: 1,
+                perChildPerDay: 0.5,
+                perDogPerDay: 1,
+                perCatPerDay: 0.5,
                 unit: "gallons"
             },
             // Add more water-related items if needed

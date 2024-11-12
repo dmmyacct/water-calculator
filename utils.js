@@ -1,12 +1,16 @@
 /**
- * Formats a number to have up to two decimal places if necessary.
+ * Formats a number to have up to two decimal places if necessary and adds commas for thousands.
  * @param {number} num - The number to format.
  * @returns {string} - Formatted number as a string.
  */
 export function formatNumber(num) {
     const number = parseFloat(num);
-    // Return integer as string or fixed decimal places
-    return Number.isInteger(number) ? number.toString() : number.toFixed(2);
+    
+    // Format the number with appropriate decimal places
+    const formattedNum = Number.isInteger(number) ? number : number.toFixed(2);
+    
+    // Add commas for thousands and return
+    return formattedNum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 /**
@@ -60,4 +64,30 @@ export function debounce(func, wait) {
         // Set a new timeout to call the function after the wait period
         timeout = setTimeout(() => func.apply(this, args), wait);
     };
+}
+
+/**
+ * Liquid conversion rates relative to milliliters
+ */
+export const liquidConversions = {
+    'milliliters': 1,
+    'liters': 1000,
+    'fluid_ounces': 29.5735,
+    'cups': 236.588,
+    'pints': 473.176,
+    'quarts': 946.353,
+    'gallons': 3785.41
+};
+
+/**
+ * Formats liquid measurements based on user preference
+ * @param {number} amount - The amount in original units (gallons)
+ * @param {string} targetUnit - The desired unit of measurement
+ * @returns {number} - Converted amount
+ */
+export function convertLiquidMeasurement(amount, targetUnit) {
+    // Convert from gallons to milliliters first
+    const milliliters = amount * liquidConversions['gallons'];
+    // Then convert to target unit
+    return milliliters / liquidConversions[targetUnit];
 }

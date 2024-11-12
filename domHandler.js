@@ -1,6 +1,8 @@
 import SupplyCalculator from './SupplyCalculator.js';
-import { formatNumber, debounce } from './utils.js';
+import { formatNumber, debounce, convertLiquidMeasurement } from './utils.js';
 import { categoryGroups, categories } from './data.js';
+
+let currentLiquidUnit = 'gallons'; // Default unit
 
 /**
  * Dynamically generates category groups and checkboxes in the UI.
@@ -114,21 +116,15 @@ export function generateTableHeader(adults, children, dogs, cats) {
 }
 
 /**
- * Populates the table body with calculated supply items.
- * @param {Array<Object>} items - List of supply items.
- * @param {number} adults
- * @param {number} children
- * @param {number} dogs
- * @param {number} cats
+ * Populates the table rows with supply data
  */
 export function populateTableRows(items, adults, children, dogs, cats) {
     const tbody = document.querySelector('#supply-table tbody');
-    tbody.innerHTML = ''; // Clear existing rows
+    tbody.innerHTML = '';
 
-    // Iterate over each item to create a row
     items.forEach(item => {
         const row = document.createElement('tr');
-
+        
         // Item Name cell
         const nameCell = document.createElement('td');
         nameCell.textContent = item.name;
@@ -138,38 +134,45 @@ export function populateTableRows(items, adults, children, dogs, cats) {
         const createCell = (value) => {
             const cell = document.createElement('td');
             if (value > 0) {
+                // Convert liquid measurements if the item is water
+                if (item.name.toLowerCase().includes('water')) {
+                    value = convertLiquidMeasurement(value, currentLiquidUnit);
+                }
                 cell.textContent = formatNumber(value);
             } else {
                 cell.textContent = '';
-                cell.classList.add('blocked-cell'); // Style for zero values
+                cell.classList.add('blocked-cell');
             }
             return cell;
         };
 
-        // Adult columns
-        for (let i = 0; i < adults; i++) {
+        // Create cells for each group
+        if (adults > 0) {
             row.appendChild(createCell(item.perAdult));
         }
-
-        // Child columns
-        for (let i = 0; i < children; i++) {
+        if (children > 0) {
             row.appendChild(createCell(item.perChild));
         }
-
-        // Dog columns
-        for (let i = 0; i < dogs; i++) {
+        if (dogs > 0) {
             row.appendChild(createCell(item.perDog));
         }
-
-        // Cat columns
-        for (let i = 0; i < cats; i++) {
+        if (cats > 0) {
             row.appendChild(createCell(item.perCat));
         }
 
         // Total Needed cell
         const totalCell = document.createElement('td');
         if (item.total > 0) {
-            totalCell.textContent = `${formatNumber(item.total)} ${item.unit}`;
+            let displayTotal = item.total;
+            let displayUnit = item.unit;
+            
+            // Convert liquid measurements if the item is water
+            if (item.name.toLowerCase().includes('water')) {
+                displayTotal = convertLiquidMeasurement(item.total, currentLiquidUnit);
+                displayUnit = currentLiquidUnit;
+            }
+            
+            totalCell.textContent = `${formatNumber(displayTotal)} ${getUnitLabel(displayUnit)}`;
         } else {
             totalCell.textContent = '';
             totalCell.classList.add('blocked-cell');
@@ -177,7 +180,6 @@ export function populateTableRows(items, adults, children, dogs, cats) {
         totalCell.classList.add('total-column');
         row.appendChild(totalCell);
 
-        // Append the row to the table body
         tbody.appendChild(row);
     });
 }
@@ -198,14 +200,65 @@ export function populateNutritionSummary(totalNutrition) {
 }
 
 /**
+ * Creates and adds the liquid unit selector to the form
+ */
+function addLiquidUnitSelector() {
+    const inputGroup = document.createElement('div');
+    inputGroup.classList.add('input-group');
+    
+    const label = document.createElement('label');
+    label.htmlFor = 'liquid-unit';
+    label.textContent = 'Liquid Measurement Unit:';
+    
+    const select = document.createElement('select');
+    select.id = 'liquid-unit';
+    select.name = 'liquid-unit';
+    
+    const units = [
+        { value: 'milliliters', label: 'mL' },
+        { value: 'liters', label: 'L' },
+        { value: 'fluid_ounces', label: 'fl oz' },
+        { value: 'cups', label: 'cups' },
+        { value: 'pints', label: 'pt' },
+        { value: 'quarts', label: 'qt' },
+        { value: 'gallons', label: 'gal' }
+    ];
+    
+    units.forEach(unit => {
+        const option = document.createElement('option');
+        option.value = unit.value;
+        option.textContent = unit.label;
+        if (unit.value === currentLiquidUnit) {
+            option.selected = true;
+        }
+        select.appendChild(option);
+    });
+    
+    select.addEventListener('change', (e) => {
+        currentLiquidUnit = e.target.value;
+        updateTable();
+    });
+    
+    inputGroup.appendChild(label);
+    inputGroup.appendChild(select);
+    
+    // Insert after the duration selector
+    const durationGroup = document.querySelector('#duration').closest('.input-group');
+    durationGroup.after(inputGroup);
+}
+
+/**
  * Initializes event listeners and updates the table on load.
  */
 export function initialize() {
     const form = document.getElementById('supply-form');
-
-    // Dynamically generate category groups and checkboxes
+    
+    // Generate category groups and checkboxes
     generateCategoryGroups();
-
+    
+    // Add liquid unit selector
+    addLiquidUnitSelector();
+    
     // Debounced update function to prevent excessive calculations
     const debouncedUpdate = debounce(updateTable, 300);
 
@@ -234,4 +287,25 @@ function updateTable() {
     // Populate the table and nutrition summary with calculated data
     populateTableRows(supplyList, inputs.adults, inputs.children, inputs.dogs, inputs.cats);
     populateNutritionSummary(totalNutrition);
+}
+
+/**
+ * Helper function to get the abbreviated unit label
+ */
+function getUnitLabel(unit) {
+    const unitMap = {
+        'milliliters': 'mL',
+        'liters': 'L',
+        'fluid_ounces': 'fl oz',
+        'cups': 'cups',
+        'pints': 'pt',
+        'quarts': 'qt',
+        'gallons': 'gal',
+        'units': 'units',
+        'kits': 'kits',
+        'rolls': 'rolls',
+        'kcal': 'kcal',
+        'g': 'g'
+    };
+    return unitMap[unit] || unit;
 }

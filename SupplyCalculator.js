@@ -32,68 +32,41 @@ export default class SupplyCalculator {
             const category = categories[categoryKey];
             if (category && category.items) {
                 category.items.forEach(item => {
-                    // Calculate per-day requirements - use let for these variables
-                    let perAdult = this.getItemQuantity(item, 'perAdultPerDay') * this.duration;
-                    let perChild = this.getItemQuantity(item, 'perChildPerDay') * this.duration;
-                    let perDog = this.getItemQuantity(item, 'perDogPerDay') * this.duration;
-                    let perCat = this.getItemQuantity(item, 'perCatPerDay') * this.duration;
+                    // Get the daily requirements
+                    const perAdultDaily = this.getItemQuantity(item, 'perAdultPerDay') || 0;
+                    const perChildDaily = this.getItemQuantity(item, 'perChildPerDay') || 0;
+                    const perDogDaily = this.getItemQuantity(item, 'perDogPerDay') || 0;
+                    const perCatDaily = this.getItemQuantity(item, 'perCatPerDay') || 0;
 
-                    // Handle one-time items and items shared among group members
-                    let perPerson = item.perPerson !== undefined ? item.perPerson : 0;
-                    let perHousehold = item.perHousehold !== undefined ? item.perHousehold : 0;
-                    let perFamily = item.perFamily !== undefined ? item.perFamily : 0;
-                    const thresholdDuration = item.thresholdDuration || 0;
-                    const sharedAmong = item.sharedAmong || 1;
+                    // Calculate total requirements for the duration
+                    const perAdult = perAdultDaily * this.duration;
+                    const perChild = perChildDaily * this.duration;
+                    const perDog = perDogDaily * this.duration;
+                    const perCat = perCatDaily * this.duration;
 
-                    // If duration is less than thresholdDuration, the item is not needed
-                    if (this.duration < thresholdDuration) {
-                        perHousehold = 0;
-                        perFamily = 0;
-                    }
-
-                    // Adjust perHousehold or perFamily items based on sharedAmong group members
-                    if (sharedAmong > 1) {
-                        perHousehold = perHousehold > 0 ? Math.ceil(perHousehold / sharedAmong) : 0;
-                        perFamily = perFamily > 0 ? Math.ceil(perFamily / sharedAmong) : 0;
-                    }
-
-                    // Ensure minimum quantities for certain items
-                    if (this.adults > 0 || this.children > 0) {
-                        perHousehold = Math.max(perHousehold, 1);
-                        perFamily = Math.max(perFamily, 1);
-                    }
-
-                    // Ensure pet-specific items are included if pets are present
-                    if (this.dogs > 0 && item.name.toLowerCase().includes('dog')) {
-                        perDog = Math.max(perDog, 1);
-                    }
-                    if (this.cats > 0 && item.name.toLowerCase().includes('cat')) {
-                        perCat = Math.max(perCat, 1);
-                    }
+                    // Handle one-time items
+                    const perPerson = item.perPerson || 0;
+                    const perHousehold = item.perHousehold || 0;
+                    const perFamily = item.perFamily || 0;
 
                     // Create new item object with calculated quantities
                     const newItem = {
                         name: item.name,
                         category: category.name,
-                        perAdult: perAdult + perPerson,
-                        perChild: perChild + perPerson,
-                        perDog: perDog,
-                        perCat: perCat,
-                        perHousehold: perHousehold,
-                        perFamily: perFamily,
+                        perAdult,
+                        perChild,
+                        perDog,
+                        perCat,
+                        perHousehold,
+                        perFamily,
                         unit: item.unit
                     };
 
-                    // Add the new item to the allItems array
                     this.allItems.push(newItem);
                 });
             }
         });
 
-        // For debugging, log the allItems array
-        console.log('All items before consolidation:', this.allItems);
-
-        // Return consolidated items
         return consolidateItems(this.allItems);
     }
 
@@ -103,16 +76,36 @@ export default class SupplyCalculator {
      * @returns {Array<Object>}
      */
     calculateTotals(consolidatedItems) {
-        // Map over consolidated items to calculate total quantities
         return consolidatedItems.map(item => {
-            const total = (item.perAdult * this.adults) +
-                          (item.perChild * this.children) +
-                          (item.perDog * this.dogs) +
-                          (item.perCat * this.cats) +
-                          item.perHousehold +  // Not multiplied by count
-                          item.perFamily;      // Not multiplied by count
+            // Calculate total based on per-person quantities and counts
+            const total = (
+                (item.perAdult * this.adults) +
+                (item.perChild * this.children) +
+                (item.perDog * this.dogs) +
+                (item.perCat * this.cats) +
+                item.perHousehold +
+                item.perFamily
+            );
 
-            // Return item with total quantity included
+            // For debugging
+            console.log(`Calculating total for ${item.name}:`, {
+                perAdult: item.perAdult,
+                adults: this.adults,
+                adultTotal: item.perAdult * this.adults,
+                perChild: item.perChild,
+                children: this.children,
+                childTotal: item.perChild * this.children,
+                perDog: item.perDog,
+                dogs: this.dogs,
+                dogTotal: item.perDog * this.dogs,
+                perCat: item.perCat,
+                cats: this.cats,
+                catTotal: item.perCat * this.cats,
+                perHousehold: item.perHousehold,
+                perFamily: item.perFamily,
+                finalTotal: total
+            });
+
             return { ...item, total };
         });
     }

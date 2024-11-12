@@ -268,24 +268,33 @@ function populateTableRows(supplyList, inputs) {
             const row = document.createElement('tr');
             let rowHTML = `<td>${item.name}</td><td>${item.category}</td>`;
 
+            // Function to format value with unit
+            const formatValueWithUnit = (value, itemUnit) => {
+                if (item.name.toLowerCase().includes('water')) {
+                    value = convertLiquidMeasurement(value, currentLiquidUnit);
+                    itemUnit = currentLiquidUnit;
+                }
+                return `${formatNumber(value)} ${getUnitLabel(itemUnit)}`;
+            };
+
             // Add cells for each adult
             for (let i = 0; i < inputs.adults; i++) {
-                rowHTML += `<td>${formatNumber(item.perAdult || 0)}</td>`;
+                rowHTML += `<td>${formatValueWithUnit(item.perAdult || 0, item.unit)}</td>`;
             }
 
             // Add cells for each child
             for (let i = 0; i < inputs.children; i++) {
-                rowHTML += `<td>${formatNumber(item.perChild || 0)}</td>`;
+                rowHTML += `<td>${formatValueWithUnit(item.perChild || 0, item.unit)}</td>`;
             }
 
             // Add cells for each dog
             for (let i = 0; i < inputs.dogs; i++) {
-                rowHTML += `<td>${formatNumber(item.perDog || 0)}</td>`;
+                rowHTML += `<td>${formatValueWithUnit(item.perDog || 0, item.unit)}</td>`;
             }
 
             // Add cells for each cat
             for (let i = 0; i < inputs.cats; i++) {
-                rowHTML += `<td>${formatNumber(item.perCat || 0)}</td>`;
+                rowHTML += `<td>${formatValueWithUnit(item.perCat || 0, item.unit)}</td>`;
             }
 
             // Add total column

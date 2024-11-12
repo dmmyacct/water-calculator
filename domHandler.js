@@ -187,10 +187,10 @@ function generateTableHeader(adults, children, dogs, cats) {
     let thead = table.querySelector('thead');
     if (!thead) {
         thead = document.createElement('thead');
-        table.insertBefore(thead, table.firstChild); // Ensure thead is the first child
+        table.insertBefore(thead, table.firstChild);
     }
     const headerRow = document.createElement('tr');
-    headerRow.innerHTML = '<th>Item</th>';
+    headerRow.innerHTML = '<th>Item</th><th>Category</th>';
 
     // Add columns for adults
     for (let i = 0; i < adults; i++) {
@@ -225,21 +225,18 @@ function generateTableHeader(adults, children, dogs, cats) {
  * @param {Object} inputs - Current input values for adults, children, dogs, and cats
  */
 function populateTableRows(supplyList, inputs) {
-    // Get reference to the table first
     const table = document.querySelector('#supply-table');
-    
-    // Get or create tbody
     let tbody = table.querySelector('tbody');
     if (!tbody) {
         tbody = document.createElement('tbody');
         table.appendChild(tbody);
     }
     
-    tbody.innerHTML = ''; // Clear existing rows
+    tbody.innerHTML = '';
 
     if (!supplyList || supplyList.length === 0) {
         const emptyRow = document.createElement('tr');
-        const colspan = 2 + inputs.adults + inputs.children + inputs.dogs + inputs.cats;
+        const colspan = 3 + inputs.adults + inputs.children + inputs.dogs + inputs.cats;
         emptyRow.innerHTML = `<td colspan="${colspan}">No items to display</td>`;
         tbody.appendChild(emptyRow);
         return;
@@ -262,14 +259,14 @@ function populateTableRows(supplyList, inputs) {
         categoryRow.classList.add('category-header');
         categoryRow.dataset.category = category;
         categoryRow.dataset.index = categoryIndex++;
-        const colspan = 2 + inputs.adults + inputs.children + inputs.dogs + inputs.cats;
+        const colspan = 3 + inputs.adults + inputs.children + inputs.dogs + inputs.cats;
         categoryRow.innerHTML = `<td colspan="${colspan}">${category}</td>`;
         tbody.appendChild(categoryRow);
 
         // Add items for this category
         items.forEach(item => {
             const row = document.createElement('tr');
-            let rowHTML = `<td>${item.name}</td>`;
+            let rowHTML = `<td>${item.name}</td><td>${item.category}</td>`;
 
             // Add cells for each adult
             for (let i = 0; i < inputs.adults; i++) {

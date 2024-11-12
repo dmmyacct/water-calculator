@@ -255,10 +255,13 @@ function populateTableRows(supplyList, inputs) {
     }, {});
 
     // Iterate through grouped items
+    let categoryIndex = 0;
     Object.entries(groupedItems).forEach(([category, items]) => {
         // Add category header row
         const categoryRow = document.createElement('tr');
         categoryRow.classList.add('category-header');
+        categoryRow.dataset.category = category;
+        categoryRow.dataset.index = categoryIndex++;
         const colspan = 2 + inputs.adults + inputs.children + inputs.dogs + inputs.cats;
         categoryRow.innerHTML = `<td colspan="${colspan}">${category}</td>`;
         tbody.appendChild(categoryRow);
@@ -304,6 +307,9 @@ function populateTableRows(supplyList, inputs) {
             tbody.appendChild(row);
         });
     });
+
+    // Call function to set up sticky headers
+    setupStickyCategoryHeaders();
 }
 
 /**
@@ -393,6 +399,7 @@ function updateTable() {
     
     // Update table rows to match the new header structure
     populateTableRows(supplyList, inputs);
+    setupStickyCategoryHeaders();
 
     // Log the table structure
     console.log('Table structure:', document.querySelector('#supply-table').outerHTML);
@@ -587,4 +594,42 @@ function saveDefaultValues(modal) {
     
     // Close the modal
     modal.remove();
+}
+
+function setupStickyCategoryHeaders() {
+    const tableSection = document.querySelector('#table-section');
+    const categoryHeaders = document.querySelectorAll('.category-header');
+    const tableHeader = document.querySelector('#supply-table thead');
+    const tableHeaderHeight = tableHeader.offsetHeight;
+
+    let lastActiveHeader = null;
+
+    function updateStickyHeaders() {
+        const scrollPosition = tableSection.scrollTop;
+        let activeHeader = null;
+
+        categoryHeaders.forEach((header) => {
+            const headerTop = header.offsetTop - tableHeaderHeight;
+            const headerBottom = headerTop + header.offsetHeight;
+
+            if (scrollPosition >= headerTop && scrollPosition < headerBottom) {
+                activeHeader = header;
+            }
+        });
+
+        if (activeHeader !== lastActiveHeader) {
+            if (lastActiveHeader) {
+                lastActiveHeader.classList.remove('sticky-active');
+                lastActiveHeader.style.top = '';
+            }
+            if (activeHeader) {
+                activeHeader.classList.add('sticky-active');
+                activeHeader.style.top = `${tableHeaderHeight}px`;
+            }
+            lastActiveHeader = activeHeader;
+        }
+    }
+
+    tableSection.addEventListener('scroll', updateStickyHeaders);
+    updateStickyHeaders(); // Initial call to set the correct header
 }

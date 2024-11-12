@@ -524,10 +524,30 @@ footer {
     background-color: #f0f0f0;
     font-weight: bold;
     text-align: left;
+    position: sticky;
+    top: 50px; /* Adjust this value based on your table header height */
+    z-index: 1;
 }
 
 .category-header td {
     padding: 10px;
     border-top: 2px solid #ddd;
     border-bottom: 2px solid #ddd;
+}
+
+/* Ensure the category header has a background */
+.category-header td::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: #f0f0f0;
+    z-index: -1;
+}
+
+/* Add a class for the active sticky category */
+.category-header.sticky-active {
+    z-index: 2;
 }

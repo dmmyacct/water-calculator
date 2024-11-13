@@ -487,6 +487,10 @@ export function initialize() {
     initializeStickyHeaders();
 
     updateDateInfo();
+
+    // Add event listener to the duration selector
+    const durationSelector = document.getElementById('duration');
+    durationSelector.addEventListener('change', updateDateInfo);
 }
 
 /**
@@ -1361,8 +1365,25 @@ function updateDateInfo() {
     const endDateString = endDate.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
     dateInfoSection.innerHTML = `
-        <p>Today's Date: <strong>${todayString}</strong></p>
-        <p>Plan Duration: <strong>${duration} days</strong></p>
+        <p>Start Date: <strong>${todayString}</strong></p>
+        <p>Plan Duration: 
+            <select id="plan-duration-select">
+                <option value="1" ${duration === 1 ? 'selected' : ''}>1</option>
+                <option value="3" ${duration === 3 ? 'selected' : ''}>3</option>
+                <option value="7" ${duration === 7 ? 'selected' : ''}>7</option>
+                <option value="30" ${duration === 30 ? 'selected' : ''}>30</option>
+                <option value="90" ${duration === 90 ? 'selected' : ''}>90</option>
+                <option value="180" ${duration === 180 ? 'selected' : ''}>180</option>
+            </select> days
+        </p>
         <p>End Date: <strong>${endDateString}</strong></p>
     `;
+
+    // Add event listener to the new dropdown
+    const planDurationSelect = document.getElementById('plan-duration-select');
+    planDurationSelect.addEventListener('change', (event) => {
+        const newDuration = parseInt(event.target.value, 10);
+        document.getElementById('duration').value = newDuration; // Update the original dropdown
+        updateDateInfo(); // Refresh the date info
+    });
 }

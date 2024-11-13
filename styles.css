@@ -1239,12 +1239,12 @@ footer {
     align-items: center;
     background-color: #ffffff;
     color: #2c3e50;
-    padding: 15px 20px;
+    padding: 25px 30px;
     border-radius: 12px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin: 20px 5%;
-    font-size: 1.1em;
-    line-height: 1.4;
+    margin: 30px 5%;
+    font-size: 1.3em;
+    line-height: 1.6;
 }
 
 .date-info p {
@@ -1263,4 +1263,13 @@ footer {
 
 .date-info strong {
     color: #2980b9;
+}
+
+.date-info select {
+    font-size: 1em;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+    color: #2c3e50;
 }

@@ -1,3 +1,5 @@
+import { UnitSystem } from './unitSystem.js';
+
 /**
  * Formats a number to have up to two decimal places if necessary and adds commas for thousands.
  * @param {number} num - The number to format.
@@ -56,27 +58,11 @@ export function debounce(func, wait) {
 }
 
 /**
- * Liquid conversion rates relative to milliliters
- */
-export const liquidConversions = {
-    'milliliters': 1,
-    'liters': 1000,
-    'fluid_ounces': 29.5735,
-    'cups': 236.588,
-    'pints': 473.176,
-    'quarts': 946.353,
-    'gallons': 3785.41
-};
-
-/**
  * Formats liquid measurements based on user preference
  * @param {number} amount - The amount in original units (gallons)
  * @param {string} targetUnit - The desired unit of measurement
  * @returns {number} - Converted amount
  */
-export function convertLiquidMeasurement(amount, targetUnit) {
-    // Convert from gallons to milliliters first
-    const milliliters = amount * liquidConversions['gallons'];
-    // Then convert to target unit
-    return milliliters / liquidConversions[targetUnit];
+export function convertLiquidMeasurement(amount, fromUnit, toUnit) {
+    return UnitSystem.convertUnit(amount, fromUnit, toUnit);
 }

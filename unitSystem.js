@@ -1,97 +1,141 @@
 export class UnitSystem {
-    static conversions = {
-        // Weight conversions
-        lbs: {
-            metric: {
-                value: 0.453592,
-                unit: 'kg'
-            }
-        },
-        oz: {
-            metric: {
-                value: 28.3495,
-                unit: 'g'
-            }
-        },
-        // Volume conversions
-        gallons: {
-            metric: {
-                value: 3.78541,
-                unit: 'L'
-            }
-        },
-        'fl oz': {
-            metric: {
-                value: 29.5735,
-                unit: 'mL'
-            }
-        },
-        // Length conversions
-        inches: {
-            metric: {
-                value: 2.54,
-                unit: 'cm'
-            }
-        },
-        feet: {
-            metric: {
-                value: 0.3048,
-                unit: 'm'
-            }
-        }
-    };
-
-    static displayUnits = {
-        imperial: {
-            weight: { large: 'lbs', small: 'oz' },
-            volume: { large: 'gal', small: 'fl oz' },
-            length: { large: 'ft', small: 'in' }
-        },
-        metric: {
-            weight: { large: 'kg', small: 'g' },
-            volume: { large: 'L', small: 'mL' },
-            length: { large: 'm', small: 'cm' }
-        }
-    };
-
-    static convertValue(value, fromUnit, toSystem) {
-        if (!value || !fromUnit) return value;
-        
-        // If we're already in the target system, return the value
-        if ((toSystem === 'imperial' && this.isImperialUnit(fromUnit)) ||
-            (toSystem === 'metric' && this.isMetricUnit(fromUnit))) {
-            return value;
-        }
-
-        const conversion = this.conversions[fromUnit]?.[toSystem];
-        if (!conversion) return value;
-
-        return value * conversion.value;
-    }
-
-    static getDisplayUnit(unit, system) {
-        if (!unit) return '';
-        
-        // Special cases for units that don't change
-        if (['units', 'kits', 'rolls', 'kcal'].includes(unit)) {
-            return unit;
-        }
-
-        // If we're already in the correct system, return the unit
-        if ((system === 'imperial' && this.isImperialUnit(unit)) ||
-            (system === 'metric' && this.isMetricUnit(unit))) {
-            return unit;
-        }
-
-        const conversion = this.conversions[unit]?.[system];
-        return conversion ? conversion.unit : unit;
+    static isMetricUnit(unit) {
+        return ['kg', 'g', 'L', 'mL', 'cm', 'm'].includes(unit);
     }
 
     static isImperialUnit(unit) {
-        return ['lbs', 'oz', 'gallons', 'fl oz', 'inches', 'feet'].includes(unit);
+        return ['lb', 'oz', 'gal', 'qt', 'pt', 'fl oz'].includes(unit);
     }
 
-    static isMetricUnit(unit) {
-        return ['kg', 'g', 'L', 'mL', 'cm', 'm'].includes(unit);
+    static getBaseUnit(type) {
+        const baseUnits = {
+            liquid: {
+                metric: 'L',
+                imperial: 'gal'
+            },
+            weight: {
+                metric: 'kg',
+                imperial: 'lb'
+            },
+            length: {
+                metric: 'm',
+                imperial: 'ft'
+            }
+        };
+        return baseUnits[type];
+    }
+
+    static convertUnit(value, fromUnit, toUnit) {
+        // If units are the same, return the original value
+        if (fromUnit === toUnit) return value;
+        
+        // Skip conversion for non-convertible units
+        if (['units', 'kits', 'rolls', 'kcal', 'cans'].includes(fromUnit)) {
+            return value;
+        }
+
+        try {
+            // Convert to base unit first
+            const baseValue = this.toBaseUnit(value, fromUnit);
+            // Then convert to target unit
+            return this.fromBaseUnit(baseValue, toUnit);
+        } catch (error) {
+            console.warn(`Conversion error: ${fromUnit} to ${toUnit}`, error);
+            return value;
+        }
+    }
+
+    static toBaseUnit(value, unit) {
+        const conversions = {
+            // Metric
+            'mL': 1,
+            'L': 1000,
+            'g': 1,
+            'kg': 1000,
+            // Imperial
+            'fl oz': 29.5735,
+            'pt': 473.176,
+            'qt': 946.353,
+            'gal': 3785.41,
+            'oz': 28.3495,
+            'lb': 453.592
+        };
+        return value * (conversions[unit] || 1);
+    }
+
+    static fromBaseUnit(value, unit) {
+        const conversions = {
+            // Metric
+            'mL': 1,
+            'L': 0.001,
+            'g': 1,
+            'kg': 0.001,
+            // Imperial
+            'fl oz': 0.033814,
+            'pt': 0.002113,
+            'qt': 0.001057,
+            'gal': 0.000264,
+            'oz': 0.035274,
+            'lb': 0.002205
+        };
+        return value * (conversions[unit] || 1);
+    }
+
+    static getDisplayUnit(unit, system) {
+        // Handle null/undefined cases
+        if (!unit) return '';
+
+        // Don't convert these units
+        if (['units', 'kits', 'rolls', 'kcal', 'cans'].includes(unit)) {
+            return unit;
+        }
+
+        const unitMap = {
+            imperial: {
+                'L': 'gal',
+                'mL': 'fl oz',
+                'kg': 'lb',
+                'g': 'oz',
+                'm': 'ft',
+                'cm': 'in',
+                // Map imperial units to themselves
+                'gal': 'gal',
+                'fl oz': 'fl oz',
+                'lb': 'lb',
+                'oz': 'oz',
+                'ft': 'ft',
+                'in': 'in'
+            },
+            metric: {
+                'gal': 'L',
+                'fl oz': 'mL',
+                'lb': 'kg',
+                'oz': 'g',
+                'ft': 'm',
+                'in': 'cm',
+                // Map metric units to themselves
+                'L': 'L',
+                'mL': 'mL',
+                'kg': 'kg',
+                'g': 'g',
+                'm': 'm',
+                'cm': 'cm'
+            }
+        };
+
+        return unitMap[system]?.[unit] || unit;
+    }
+
+    static getUnitType(unit) {
+        const unitTypes = {
+            liquid: ['L', 'mL', 'gal', 'fl oz', 'qt', 'pt'],
+            weight: ['kg', 'g', 'lb', 'oz'],
+            length: ['m', 'cm', 'ft', 'in']
+        };
+
+        for (const [type, units] of Object.entries(unitTypes)) {
+            if (units.includes(unit)) return type;
+        }
+        return null;
     }
 } 

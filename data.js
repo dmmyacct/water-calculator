@@ -60,7 +60,7 @@ export const categoryGroups = {
 export const categories = {
     water: {
         name: "Water",
-        description: "Clean water for drinking, cooking, and basic hygiene. Essential for survival.",
+        description: "Clean water for drinking, cooking, and basic hygiene.",
         items: [
             {
                 name: "Water",
@@ -68,7 +68,7 @@ export const categories = {
                 perChildPerDay: 0.5,
                 perDogPerDay: 1,
                 perCatPerDay: 0.5,
-                unit: "gallons"
+                unit: "gal"
             }
         ]
     },
@@ -77,10 +77,10 @@ export const categories = {
         description: "Non-perishable food items that provide necessary calories and nutrition.",
         items: [
             {
-                name: "Rice (lbs)",
+                name: "Rice",
                 perAdultPerDay: 0.625,
                 perChildPerDay: 0.3,
-                unit: "lbs"
+                unit: "lb"
             },
             {
                 name: "Canned Meat (cans)",

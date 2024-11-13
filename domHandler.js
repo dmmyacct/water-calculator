@@ -255,112 +255,115 @@ function generateTableHeader(adults, children, dogs, cats) {
 
 /**
  * Populates the table rows with supply data
- * @param {Array} supplyList - List of supplies to display
- * @param {Object} inputs - Current input values for adults, children, dogs, and cats
+ * @param {Array} supplyList - List of supplies with quantities
+ * @param {Object} inputs - User inputs
  */
 function populateTableRows(supplyList, inputs) {
-    const table = document.querySelector('#supply-table');
+    // Get or create table
+    let table = document.querySelector('#supply-table');
+    if (!table) {
+        table = document.createElement('table');
+        table.id = 'supply-table';
+        document.querySelector('.table-container').appendChild(table);
+    }
+
+    // Create table structure if it doesn't exist
+    if (!table.querySelector('thead')) {
+        const thead = document.createElement('thead');
+        thead.innerHTML = `
+            <tr>
+                <th>Item</th>
+                <th>Adults</th>
+                <th>Children</th>
+                <th>Dogs</th>
+                <th>Cats</th>
+                <th>Total</th>
+            </tr>
+        `;
+        table.appendChild(thead);
+    }
+
+    // Get or create tbody
     let tbody = table.querySelector('tbody');
     if (!tbody) {
         tbody = document.createElement('tbody');
         table.appendChild(tbody);
     }
-    
+
+    // Clear existing rows
     tbody.innerHTML = '';
+    
+    let currentCategory = null;
+    const system = localStorage.getItem('preferredUnitSystem') || 'imperial';
 
-    if (!supplyList || supplyList.length === 0) {
-        const emptyRow = document.createElement('tr');
-        const colspan = 3 + inputs.adults + inputs.children + inputs.dogs + inputs.cats;
-        emptyRow.innerHTML = `<td colspan="${colspan}">No items to display</td>`;
-        tbody.appendChild(emptyRow);
-        return;
-    }
-
-    // Group items by their parent category group
-    const groupedItems = supplyList.reduce((acc, item) => {
-        // Find the category group that contains this item's category
-        const groupEntry = Object.entries(categoryGroups).find(([_, group]) => 
-            group.categories.some(cat => categories[cat].name === item.category)
-        );
-        
-        if (groupEntry) {
-            const [groupKey, group] = groupEntry;
-            if (!acc[groupKey]) {
-                acc[groupKey] = {
-                    name: group.name,
-                    items: []
-                };
+    supplyList.sort((a, b) => a.category.localeCompare(b.category))
+        .forEach(item => {
+            // Add category header if category changes
+            if (item.category !== currentCategory) {
+                currentCategory = item.category;
+                const categoryRow = document.createElement('tr');
+                categoryRow.classList.add('category-header');
+                categoryRow.innerHTML = `
+                    <td colspan="6" class="category-name">${currentCategory}</td>
+                `;
+                tbody.appendChild(categoryRow);
             }
-            acc[groupKey].items.push(item);
-        }
-        return acc;
-    }, {});
 
-    // Iterate through grouped items
-    let categoryIndex = 0;
-    Object.entries(groupedItems).forEach(([groupKey, group]) => {
-        // Add category group header row
-        const categoryRow = document.createElement('tr');
-        categoryRow.classList.add('category-header');
-        categoryRow.dataset.category = groupKey;
-        categoryRow.dataset.index = categoryIndex++;
-        const colspan = 3 + inputs.adults + inputs.children + inputs.dogs + inputs.cats;
-        categoryRow.innerHTML = `<td colspan="${colspan}">${group.name}</td>`;
-        tbody.appendChild(categoryRow);
-
-        // Add items for this category group
-        group.items.forEach(item => {
+            // Create row for item
             const row = document.createElement('tr');
-            let rowHTML = `<td>${item.name}</td><td>${item.category}</td>`;
-
-            // Function to format value with unit
-            const formatValueWithUnit = (value, itemUnit, itemName) => {
-                if (!value) return '0';
-                
-                // Convert the value based on the current unit system
-                const convertedValue = UnitSystem.convertValue(value, itemUnit, currentUnitSystem);
-                const displayUnit = UnitSystem.getDisplayUnit(itemUnit, currentUnitSystem);
-                
-                return `${formatNumber(convertedValue)} ${displayUnit}`;
+            
+            // Format values with appropriate units
+            const formattedValues = {
+                adults: formatItemValue(item.perAdult * inputs.adults, item.unit, system),
+                children: formatItemValue(item.perChild * inputs.children, item.unit, system),
+                dogs: formatItemValue(item.perDog * inputs.dogs, item.unit, system),
+                cats: formatItemValue(item.perCat * inputs.cats, item.unit, system),
+                total: formatItemValue(item.total, item.unit, system)
             };
 
-            // Add cells for each adult
-            for (let i = 0; i < inputs.adults; i++) {
-                rowHTML += `<td>${formatValueWithUnit(item.perAdult || 0, item.unit, item.name)}</td>`;
-            }
-
-            // Add cells for each child
-            for (let i = 0; i < inputs.children; i++) {
-                rowHTML += `<td>${formatValueWithUnit(item.perChild || 0, item.unit, item.name)}</td>`;
-            }
-
-            // Add cells for each dog
-            for (let i = 0; i < inputs.dogs; i++) {
-                rowHTML += `<td>${formatValueWithUnit(item.perDog || 0, item.unit, item.name)}</td>`;
-            }
-
-            // Add cells for each cat
-            for (let i = 0; i < inputs.cats; i++) {
-                rowHTML += `<td>${formatValueWithUnit(item.perCat || 0, item.unit, item.name)}</td>`;
-            }
-
-            // Add total column
-            let displayTotal = item.total;
-            let displayUnit = item.unit;
+            row.innerHTML = `
+                <td>${item.name}</td>
+                <td class="${inputs.adults ? '' : 'blocked-cell'}">${formattedValues.adults}</td>
+                <td class="${inputs.children ? '' : 'blocked-cell'}">${formattedValues.children}</td>
+                <td class="${inputs.dogs ? '' : 'blocked-cell'}">${formattedValues.dogs}</td>
+                <td class="${inputs.cats ? '' : 'blocked-cell'}">${formattedValues.cats}</td>
+                <td class="total-column">${formattedValues.total}</td>
+            `;
             
-            if (item.name.toLowerCase().includes('water')) {
-                displayTotal = convertLiquidMeasurement(item.total, currentLiquidUnit);
-                displayUnit = currentLiquidUnit;
-            }
-            
-            rowHTML += `<td class="total-column">${formatNumber(displayTotal)} ${getUnitLabel(displayUnit)}</td>`;
-            
-            row.innerHTML = rowHTML;
             tbody.appendChild(row);
         });
-    });
+}
 
-    setupStickyCategoryHeaders();
+/**
+ * Formats a value with its unit for display
+ * @param {number} value - The value to format
+ * @param {string} unit - The unit of measurement
+ * @param {string} system - The measurement system to use
+ * @returns {string} - Formatted value with unit
+ */
+function formatItemValue(value, unit, system) {
+    if (!value || value === 0) return '0';
+    
+    // Skip conversion for units that don't change
+    if (['units', 'kits', 'rolls', 'kcal', 'cans'].includes(unit)) {
+        return `${formatNumber(value)} ${unit}`;
+    }
+
+    try {
+        // Get the target unit based on the system
+        const targetUnit = UnitSystem.getDisplayUnit(unit, system);
+        if (!targetUnit) return `${formatNumber(value)} ${unit}`;
+
+        // Convert the value if needed
+        const convertedValue = unit !== targetUnit ? 
+            UnitSystem.convertUnit(value, unit, targetUnit) : 
+            value;
+
+        return `${formatNumber(convertedValue)} ${targetUnit}`;
+    } catch (error) {
+        console.warn(`Error formatting value for ${unit}: ${error.message}`);
+        return `${formatNumber(value)} ${unit}`;
+    }
 }
 
 /**
@@ -491,18 +494,22 @@ function updateTable() {
     const inputs = getInputValues();
     const selectedCategories = getSelectedCategories();
     
-    // Update table header based on current inputs
-    generateTableHeader(inputs.adults, inputs.children, inputs.dogs, inputs.cats);
+    // Ensure table container exists
+    let tableContainer = document.querySelector('.table-container');
+    if (!tableContainer) {
+        tableContainer = document.createElement('div');
+        tableContainer.classList.add('table-container');
+        document.querySelector('#table-section').appendChild(tableContainer);
+    }
     
     const calculator = new SupplyCalculator(inputs, selectedCategories);
     const supplyList = calculator.getSupplyList();
     
-    // Update table rows to match the new header structure
+    // Update table rows
     populateTableRows(supplyList, inputs);
+    
+    // Setup sticky headers after populating table
     setupStickyCategoryHeaders();
-
-    // Log the table structure
-    console.log('Table structure:', document.querySelector('#supply-table').outerHTML);
 }
 
 /**
@@ -1279,4 +1286,64 @@ function initializeStickyHeaders() {
             }
         });
     });
+}
+
+function initializeUnitSystem() {
+    const unitSystemSelect = document.createElement('select');
+    unitSystemSelect.id = 'unit-system';
+    unitSystemSelect.innerHTML = `
+        <option value="imperial">Imperial (US)</option>
+        <option value="metric">Metric</option>
+    `;
+    
+    // Set initial value based on user's locale
+    const userLocale = navigator.language;
+    const defaultSystem = ['en-US'].includes(userLocale) ? 'imperial' : 'metric';
+    unitSystemSelect.value = localStorage.getItem('preferredUnitSystem') || defaultSystem;
+    
+    unitSystemSelect.addEventListener('change', (e) => {
+        const newSystem = e.target.value;
+        localStorage.setItem('preferredUnitSystem', newSystem);
+        updateTable(); // Refresh calculations with new unit system
+    });
+
+    // Add to the input section
+    const unitSystemGroup = document.createElement('div');
+    unitSystemGroup.classList.add('input-group', 'unit-system-input');
+    unitSystemGroup.innerHTML = `<label for="unit-system">Measurement System:</label>`;
+    unitSystemGroup.appendChild(unitSystemSelect);
+    
+    document.querySelector('#supply-form').appendChild(unitSystemGroup);
+}
+
+/**
+ * Formats a value with its appropriate unit, converting if necessary
+ * @param {number} value - The value to format
+ * @param {string} unit - The unit of measurement
+ * @param {string} system - The target measurement system
+ * @returns {string} - Formatted value with unit
+ */
+function formatValueWithUnit(value, unit, system) {
+    if (!value || !unit) return '0';
+    
+    // Skip conversion for units that don't change
+    if (['units', 'kits', 'rolls', 'kcal', 'cans'].includes(unit)) {
+        return `${formatNumber(value)} ${unit}`;
+    }
+
+    try {
+        // Get the target unit based on the system
+        const targetUnit = UnitSystem.getDisplayUnit(unit, system);
+        if (!targetUnit) return `${formatNumber(value)} ${unit}`;
+
+        // Convert the value if needed
+        const convertedValue = unit !== targetUnit ? 
+            UnitSystem.convertUnit(value, unit, targetUnit) : 
+            value;
+
+        return `${formatNumber(convertedValue)} ${targetUnit}`;
+    } catch (error) {
+        console.warn(`Error formatting value: ${error.message}`);
+        return `${formatNumber(value)} ${unit}`;
+    }
 }

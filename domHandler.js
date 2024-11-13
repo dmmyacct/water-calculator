@@ -485,6 +485,8 @@ export function initialize() {
     updateTable();
 
     initializeStickyHeaders();
+
+    updateDateInfo();
 }
 
 /**
@@ -1346,4 +1348,21 @@ function formatValueWithUnit(value, unit, system) {
         console.warn(`Error formatting value: ${error.message}`);
         return `${formatNumber(value)} ${unit}`;
     }
+}
+
+function updateDateInfo() {
+    const dateInfoSection = document.getElementById('date-info');
+    const today = new Date();
+    const duration = parseInt(document.getElementById('duration').value, 10);
+    const endDate = new Date(today);
+    endDate.setDate(today.getDate() + duration);
+
+    const todayString = today.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const endDateString = endDate.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+    dateInfoSection.innerHTML = `
+        <p>Today's Date: <strong>${todayString}</strong></p>
+        <p>Plan Duration: <strong>${duration} days</strong></p>
+        <p>End Date: <strong>${endDateString}</strong></p>
+    `;
 }

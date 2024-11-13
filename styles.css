@@ -1232,3 +1232,35 @@ footer {
     border-radius: 8px 8px 0 0;
     overflow: hidden;
 }
+
+.date-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ffffff;
+    color: #2c3e50;
+    padding: 15px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 20px 5%;
+    font-size: 1.1em;
+    line-height: 1.4;
+}
+
+.date-info p {
+    margin: 0;
+    flex: 1;
+    text-align: center;
+}
+
+.date-info p:first-child {
+    text-align: left;
+}
+
+.date-info p:last-child {
+    text-align: right;
+}
+
+.date-info strong {
+    color: #2980b9;
+}

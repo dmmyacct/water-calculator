@@ -20,23 +20,25 @@ export default class SupplyCalculator {
         this.selectedCategories = selectedCategories;
         this.allItems = []; // Array to store all items before consolidation
         this.defaultsManager = new DefaultsManager();
+        // Initialize the defaultsManager
+        this.defaultsManager.initialize();
     }
 
     /**
      * Generates all items required based on selected categories and duration.
      * @returns {Array<Object>}
      */
-    generateAllItems() {
+    async generateAllItems() {
         this.allItems = []; // Reset allItems array
-        this.selectedCategories.forEach(categoryKey => {
+        for (const categoryKey of this.selectedCategories) {
             const category = categories[categoryKey];
             if (category && category.items) {
-                category.items.forEach(item => {
-                    // Get the daily requirements
-                    const perAdultDaily = this.getItemQuantity(item, 'perAdultPerDay') || 0;
-                    const perChildDaily = this.getItemQuantity(item, 'perChildPerDay') || 0;
-                    const perDogDaily = this.getItemQuantity(item, 'perDogPerDay') || 0;
-                    const perCatDaily = this.getItemQuantity(item, 'perCatPerDay') || 0;
+                for (const item of category.items) {
+                    // Get the daily requirements asynchronously
+                    const perAdultDaily = await this.getItemQuantity(item, 'perAdultPerDay') || 0;
+                    const perChildDaily = await this.getItemQuantity(item, 'perChildPerDay') || 0;
+                    const perDogDaily = await this.getItemQuantity(item, 'perDogPerDay') || 0;
+                    const perCatDaily = await this.getItemQuantity(item, 'perCatPerDay') || 0;
 
                     // Calculate total requirements for the duration
                     const perAdult = perAdultDaily * this.duration;
@@ -63,9 +65,9 @@ export default class SupplyCalculator {
                     };
 
                     this.allItems.push(newItem);
-                });
+                }
             }
-        });
+        }
 
         return consolidateItems(this.allItems);
     }
@@ -114,15 +116,15 @@ export default class SupplyCalculator {
      * Returns the final supply list with total quantities.
      * @returns {Object}
      */
-    getSupplyList() {
+    async getSupplyList() {
         // Generate and consolidate all items
-        const consolidatedItems = this.generateAllItems();
+        const consolidatedItems = await this.generateAllItems();
         // Calculate total quantities for each item
         return this.calculateTotals(consolidatedItems);
     }
 
-    getItemQuantity(item, type) {
-        const defaultValue = this.defaultsManager.getItemDefault(item.name, type);
+    async getItemQuantity(item, type) {
+        const defaultValue = await this.defaultsManager.getItemDefault(item.name, type);
         return defaultValue !== undefined ? defaultValue : item[type];
     }
 

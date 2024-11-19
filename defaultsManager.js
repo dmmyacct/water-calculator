@@ -1,7 +1,38 @@
 export class DefaultsManager {
     constructor() {
         this.defaults = this.loadDefaults();
-        this.originalDefaults = this.getOriginalDefaults();
+        this.originalDefaults = {};
+    }
+    
+    async initialize() {
+        await this.loadOriginalDefaults();
+        return this;
+    }
+    
+    async loadOriginalDefaults() {
+        try {
+            const { categories } = await import('./data.js');
+            this.originalDefaults = {};
+            
+            Object.entries(categories).forEach(([categoryKey, category]) => {
+                category.items.forEach(item => {
+                    this.originalDefaults[item.name] = {
+                        perAdultPerDay: item.perAdultPerDay,
+                        perChildPerDay: item.perChildPerDay,
+                        perDogPerDay: item.perDogPerDay,
+                        perCatPerDay: item.perCatPerDay,
+                        perPerson: item.perPerson,
+                        perHousehold: item.perHousehold,
+                        perFamily: item.perFamily
+                    };
+                });
+            });
+            
+            return this.originalDefaults;
+        } catch (error) {
+            console.error('Error loading original defaults:', error);
+            throw error;
+        }
     }
     
     loadDefaults() {
@@ -14,8 +45,11 @@ export class DefaultsManager {
         localStorage.setItem('supplyDefaults', JSON.stringify(newDefaults));
     }
     
-    getItemDefault(itemName, valueType) {
-        return this.defaults[itemName]?.[valueType];
+    async getItemDefault(itemName, valueType) {
+        if (Object.keys(this.originalDefaults).length === 0) {
+            await this.loadOriginalDefaults();
+        }
+        return this.defaults[itemName]?.[valueType] ?? this.originalDefaults[itemName]?.[valueType];
     }
     
     setItemDefault(itemName, valueType, value) {
@@ -26,31 +60,10 @@ export class DefaultsManager {
         this.saveDefaults(this.defaults);
     }
     
-    getOriginalDefaults() {
-        const originalDefaults = {};
-        
-        import('./data.js').then(({ categories }) => {
-            Object.entries(categories).forEach(([categoryKey, category]) => {
-                category.items.forEach(item => {
-                    originalDefaults[item.name] = {
-                        perAdultPerDay: item.perAdultPerDay,
-                        perChildPerDay: item.perChildPerDay,
-                        perDogPerDay: item.perDogPerDay,
-                        perCatPerDay: item.perCatPerDay,
-                        perPerson: item.perPerson,
-                        perHousehold: item.perHousehold,
-                        perFamily: item.perFamily
-                    };
-                });
-            });
-        });
-        
-        return originalDefaults;
-    }
-    
-    resetToDefaults() {
+    async resetToDefaults() {
+        await this.loadOriginalDefaults();
         localStorage.removeItem('supplyDefaults');
-        this.defaults = this.originalDefaults;
-        return this.defaults;
+        this.defaults = {};
+        return this.originalDefaults;
     }
 } 

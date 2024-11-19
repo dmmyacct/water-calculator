@@ -211,42 +211,36 @@ export function getSelectedCategories() {
 
 /**
  * Generates the table header based on current inputs
- * @param {number} adults - Number of adults
- * @param {number} children - Number of children
- * @param {number} dogs - Number of dogs
- * @param {number} cats - Number of cats
  */
-function generateTableHeader(adults, children, dogs, cats) {
+function generateTableHeader() {
     const table = document.querySelector('#supply-table');
     let thead = table.querySelector('thead');
+    
+    // Get current input values using the correct function name
+    const inputs = getInputValues();
+    
+    // Create thead if it doesn't exist
     if (!thead) {
         thead = document.createElement('thead');
         table.insertBefore(thead, table.firstChild);
     }
+
+    // Determine which columns to show based on inputs
+    const columns = [
+        { id: 'item', label: 'Item' },
+        { id: 'category', label: 'Category' },
+        ...(inputs.adults > 0 ? [{ id: 'adults', label: 'Adults' }] : []),
+        ...(inputs.children > 0 ? [{ id: 'children', label: 'Children' }] : []),
+        ...(inputs.dogs > 0 ? [{ id: 'dogs', label: 'Dogs' }] : []),
+        ...(inputs.cats > 0 ? [{ id: 'cats', label: 'Cats' }] : []),
+        { id: 'total', label: 'Total Needed' }
+    ];
+
+    // Create header with dynamic columns
     const headerRow = document.createElement('tr');
-    headerRow.innerHTML = '<th>Item</th><th>Category</th>';
-
-    // Add columns for adults
-    for (let i = 0; i < adults; i++) {
-        headerRow.innerHTML += `<th>Adult ${i + 1}</th>`;
-    }
-
-    // Add columns for children
-    for (let i = 0; i < children; i++) {
-        headerRow.innerHTML += `<th>Child ${i + 1}</th>`;
-    }
-
-    // Add columns for dogs
-    for (let i = 0; i < dogs; i++) {
-        headerRow.innerHTML += `<th>Dog ${i + 1}</th>`;
-    }
-
-    // Add columns for cats
-    for (let i = 0; i < cats; i++) {
-        headerRow.innerHTML += `<th>Cat ${i + 1}</th>`;
-    }
-
-    headerRow.innerHTML += '<th>Total Needed</th>';
+    headerRow.innerHTML = columns
+        .map(col => `<th>${col.label}</th>`)
+        .join('');
 
     // Clear existing header and add the new one
     thead.innerHTML = '';
@@ -259,79 +253,70 @@ function generateTableHeader(adults, children, dogs, cats) {
  * @param {Object} inputs - User inputs
  */
 function populateTableRows(supplyList, inputs) {
-    // Get or create table
-    let table = document.querySelector('#supply-table');
-    if (!table) {
-        table = document.createElement('table');
-        table.id = 'supply-table';
-        document.querySelector('.table-container').appendChild(table);
-    }
-
-    // Create table structure if it doesn't exist
-    if (!table.querySelector('thead')) {
-        const thead = document.createElement('thead');
-        thead.innerHTML = `
-            <tr>
-                <th>Item</th>
-                <th>Adults</th>
-                <th>Children</th>
-                <th>Dogs</th>
-                <th>Cats</th>
-                <th>Total</th>
-            </tr>
-        `;
-        table.appendChild(thead);
-    }
-
-    // Get or create tbody
+    const table = document.querySelector('#supply-table');
     let tbody = table.querySelector('tbody');
+    
+    // Get current input values if not provided
+    inputs = inputs || getInputValues();
+    
+    // Create tbody if it doesn't exist
     if (!tbody) {
         tbody = document.createElement('tbody');
         table.appendChild(tbody);
+    } else {
+        tbody.innerHTML = ''; // Clear existing content
     }
 
-    // Clear existing rows
-    tbody.innerHTML = '';
-    
-    let currentCategory = null;
-    const system = localStorage.getItem('preferredUnitSystem') || 'imperial';
+    // Get selected categories in order
+    const selectedCategories = getSelectedCategories();
 
-    supplyList.sort((a, b) => a.category.localeCompare(b.category))
-        .forEach(item => {
-            // Add category header if category changes
-            if (item.category !== currentCategory) {
-                currentCategory = item.category;
-                const categoryRow = document.createElement('tr');
-                categoryRow.classList.add('category-header');
-                categoryRow.innerHTML = `
-                    <td colspan="6" class="category-name">${currentCategory}</td>
-                `;
-                tbody.appendChild(categoryRow);
-            }
+    // Group supplies by category
+    const suppliesByCategory = {};
+    supplyList.forEach(item => {
+        if (!suppliesByCategory[item.category]) {
+            suppliesByCategory[item.category] = [];
+        }
+        suppliesByCategory[item.category].push(item);
+    });
 
-            // Create row for item
-            const row = document.createElement('tr');
-            
-            // Format values with appropriate units
-            const formattedValues = {
-                adults: formatItemValue(item.perAdult * inputs.adults, item.unit, system),
-                children: formatItemValue(item.perChild * inputs.children, item.unit, system),
-                dogs: formatItemValue(item.perDog * inputs.dogs, item.unit, system),
-                cats: formatItemValue(item.perCat * inputs.cats, item.unit, system),
-                total: formatItemValue(item.total, item.unit, system)
-            };
+    // Add rows in the order of selected categories
+    selectedCategories.forEach(categoryKey => {
+        const category = categories[categoryKey];
+        if (!category) return;
 
-            row.innerHTML = `
-                <td>${item.name}</td>
-                <td class="${inputs.adults ? '' : 'blocked-cell'}">${formattedValues.adults}</td>
-                <td class="${inputs.children ? '' : 'blocked-cell'}">${formattedValues.children}</td>
-                <td class="${inputs.dogs ? '' : 'blocked-cell'}">${formattedValues.dogs}</td>
-                <td class="${inputs.cats ? '' : 'blocked-cell'}">${formattedValues.cats}</td>
-                <td class="total-column">${formattedValues.total}</td>
-            `;
-            
-            tbody.appendChild(row);
-        });
+        const supplies = suppliesByCategory[category.name] || [];
+
+        if (supplies.length > 0) {
+            // Add category header
+            const headerRow = document.createElement('tr');
+            headerRow.classList.add('category-header');
+            // Calculate colspan based on visible columns
+            const visibleColumns = 2 + // Item and Category
+                (inputs.adults > 0 ? 1 : 0) +
+                (inputs.children > 0 ? 1 : 0) +
+                (inputs.dogs > 0 ? 1 : 0) +
+                (inputs.cats > 0 ? 1 : 0) +
+                1; // Total column
+            headerRow.innerHTML = `<td colspan="${visibleColumns}">${category.name}</td>`;
+            tbody.appendChild(headerRow);
+
+            // Add supplies for this category
+            supplies.forEach(item => {
+                const row = document.createElement('tr');
+                const cells = [
+                    `<td>${item.name}</td>`,
+                    `<td>${item.category}</td>`,
+                    ...(inputs.adults > 0 ? [`<td>${formatNumber(item.perAdult || 0)}</td>`] : []),
+                    ...(inputs.children > 0 ? [`<td>${formatNumber(item.perChild || 0)}</td>`] : []),
+                    ...(inputs.dogs > 0 ? [`<td>${formatNumber(item.perDog || 0)}</td>`] : []),
+                    ...(inputs.cats > 0 ? [`<td>${formatNumber(item.perCat || 0)}</td>`] : []),
+                    `<td class="total-column">${formatNumber(item.total)}</td>`
+                ];
+                row.innerHTML = cells.join('');
+                tbody.appendChild(row);
+            });
+        }
+    });
 }
 
 /**
@@ -460,7 +445,7 @@ function addUnitSystemSelector() {
 /**
  * Initializes event listeners and updates the table on load.
  */
-export function initialize() {
+export async function initialize() {
     generateCategoryGroups();
     initializeInputControls();
     addLiquidUnitSelector();
@@ -472,20 +457,19 @@ export function initialize() {
     // Add event listeners to all inputs
     const inputs = document.querySelectorAll('#supply-form input, #supply-form select');
     inputs.forEach(input => {
-        input.addEventListener('change', debounce(updateTable, 300));
+        input.addEventListener('change', debounce(() => updateTable(), 300));
     });
 
     // Add event listeners to category checkboxes
     const categoryCheckboxes = document.querySelectorAll('.category-checkbox');
     categoryCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', debounce(updateTable, 300));
+        checkbox.addEventListener('change', debounce(() => updateTable(), 300));
     });
 
     // Initial table update
-    updateTable();
+    await updateTable();
 
     initializeStickyHeaders();
-
     updateDateInfo();
 
     // Add event listener to the duration selector
@@ -496,26 +480,30 @@ export function initialize() {
 /**
  * Updates the supply table and nutrition summary based on current inputs and selections.
  */
-function updateTable() {
-    const inputs = getInputValues();
-    const selectedCategories = getSelectedCategories();
-    
-    // Ensure table container exists
-    let tableContainer = document.querySelector('.table-container');
-    if (!tableContainer) {
-        tableContainer = document.createElement('div');
-        tableContainer.classList.add('table-container');
-        document.querySelector('#table-section').appendChild(tableContainer);
+async function updateTable() {
+    try {
+        // Get current input values and selected categories
+        const inputs = getInputValues();
+        const selectedCategories = getSelectedCategories();
+        
+        // Create new calculator instance
+        const calculator = new SupplyCalculator(inputs, selectedCategories);
+        
+        // Generate supply list
+        const supplyList = await calculator.getSupplyList();
+        
+        // Generate table header first
+        generateTableHeader();
+        
+        // Then populate rows
+        populateTableRows(supplyList, inputs);
+        
+        // Setup sticky headers after table is populated
+        setupStickyCategoryHeaders();
+        
+    } catch (error) {
+        console.error('Error updating table:', error);
     }
-    
-    const calculator = new SupplyCalculator(inputs, selectedCategories);
-    const supplyList = calculator.getSupplyList();
-    
-    // Update table rows
-    populateTableRows(supplyList, inputs);
-    
-    // Setup sticky headers after populating table
-    setupStickyCategoryHeaders();
 }
 
 /**
@@ -806,41 +794,32 @@ function saveDefaultValues(modal) {
 }
 
 function setupStickyCategoryHeaders() {
-    const tableSection = document.querySelector('#table-section');
+    const tableContainer = document.querySelector('.table-container');
+    if (!tableContainer) return; // Exit if container not found
+    
     const categoryHeaders = document.querySelectorAll('.category-header');
-    const tableHeader = document.querySelector('#supply-table thead');
-    const tableHeaderHeight = tableHeader.offsetHeight;
-
-    let lastActiveHeader = null;
-
-    function updateStickyHeaders() {
-        const scrollPosition = tableSection.scrollTop;
-        let activeHeader = null;
-
-        categoryHeaders.forEach((header) => {
-            const headerTop = header.offsetTop - tableHeaderHeight;
-            const headerBottom = headerTop + header.offsetHeight;
-
-            if (scrollPosition >= headerTop && scrollPosition < headerBottom) {
-                activeHeader = header;
-            }
+    if (!categoryHeaders.length) return; // Exit if no headers found
+    
+    tableContainer.addEventListener('scroll', () => {
+        requestAnimationFrame(() => {
+            const containerTop = tableContainer.getBoundingClientRect().top;
+            const scrollTop = tableContainer.scrollTop;
+            
+            categoryHeaders.forEach((header) => {
+                if (!header.offsetHeight) return; // Skip if header has no height
+                
+                const headerTop = header.offsetTop - scrollTop;
+                const nextHeader = header.nextElementSibling;
+                const nextHeaderTop = nextHeader ? nextHeader.offsetTop - scrollTop : Infinity;
+                
+                if (headerTop <= containerTop && nextHeaderTop > containerTop) {
+                    header.classList.add('sticky-active');
+                } else {
+                    header.classList.remove('sticky-active');
+                }
+            });
         });
-
-        if (activeHeader !== lastActiveHeader) {
-            if (lastActiveHeader) {
-                lastActiveHeader.classList.remove('sticky-active');
-                lastActiveHeader.style.top = '';
-            }
-            if (activeHeader) {
-                activeHeader.classList.add('sticky-active');
-                activeHeader.style.top = `${tableHeaderHeight}px`;
-            }
-            lastActiveHeader = activeHeader;
-        }
-    }
-
-    tableSection.addEventListener('scroll', updateStickyHeaders);
-    updateStickyHeaders(); // Initial call to set the correct header
+    });
 }
 
 function addSearchBar() {

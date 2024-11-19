@@ -303,15 +303,26 @@ function populateTableRows(supplyList, inputs) {
             // Add supplies for this category
             supplies.forEach(item => {
                 const row = document.createElement('tr');
+                const currentSystem = document.getElementById('unit-system')?.value || 'imperial';
+                
+                // Helper function to format value with unit
+                const formatWithUnit = (value, unit) => {
+                    if (!value || value === 0) return '-';
+                    const displayUnit = UnitSystem.getDisplayUnit(unit, currentSystem);
+                    const convertedValue = UnitSystem.convertUnit(value, unit, displayUnit);
+                    return `${formatNumber(convertedValue)} ${getUnitLabel(displayUnit)}`;
+                };
+
                 const cells = [
                     `<td>${item.name}</td>`,
                     `<td>${item.category}</td>`,
-                    ...(inputs.adults > 0 ? [`<td>${formatNumber(item.perAdult || 0)}</td>`] : []),
-                    ...(inputs.children > 0 ? [`<td>${formatNumber(item.perChild || 0)}</td>`] : []),
-                    ...(inputs.dogs > 0 ? [`<td>${formatNumber(item.perDog || 0)}</td>`] : []),
-                    ...(inputs.cats > 0 ? [`<td>${formatNumber(item.perCat || 0)}</td>`] : []),
-                    `<td class="total-column">${formatNumber(item.total)}</td>`
+                    ...(inputs.adults > 0 ? [`<td>${formatWithUnit(item.perAdult, item.unit)}</td>`] : []),
+                    ...(inputs.children > 0 ? [`<td>${formatWithUnit(item.perChild, item.unit)}</td>`] : []),
+                    ...(inputs.dogs > 0 ? [`<td>${formatWithUnit(item.perDog, item.unit)}</td>`] : []),
+                    ...(inputs.cats > 0 ? [`<td>${formatWithUnit(item.perCat, item.unit)}</td>`] : []),
+                    `<td class="total-column">${formatWithUnit(item.total, item.unit)}</td>`
                 ];
+
                 row.innerHTML = cells.join('');
                 tbody.appendChild(row);
             });
@@ -514,15 +525,29 @@ function getUnitLabel(unit) {
         'milliliters': 'mL',
         'liters': 'L',
         'fluid_ounces': 'fl oz',
-        'cups': 'cups',
+        'cups': 'c',
         'pints': 'pt',
         'quarts': 'qt',
         'gallons': 'gal',
+        'pounds': 'lb',
+        'ounces': 'oz',
+        'grams': 'g',
+        'kilograms': 'kg',
         'units': 'units',
         'kits': 'kits',
         'rolls': 'rolls',
         'kcal': 'kcal',
-        'g': 'g'
+        'cans': 'cans',
+        'mL': 'mL',
+        'L': 'L',
+        'fl oz': 'fl oz',
+        'pt': 'pt',
+        'qt': 'qt',
+        'gal': 'gal',
+        'lb': 'lb',
+        'oz': 'oz',
+        'g': 'g',
+        'kg': 'kg'
     };
     return unitMap[unit] || unit;
 }
@@ -1313,23 +1338,23 @@ function formatValueWithUnit(value, unit, system) {
     
     // Skip conversion for units that don't change
     if (['units', 'kits', 'rolls', 'kcal', 'cans'].includes(unit)) {
-        return `${formatNumber(value)} ${unit}`;
+        return `${formatNumber(value)} ${getUnitLabel(unit)}`;
     }
 
     try {
         // Get the target unit based on the system
         const targetUnit = UnitSystem.getDisplayUnit(unit, system);
-        if (!targetUnit) return `${formatNumber(value)} ${unit}`;
+        if (!targetUnit) return `${formatNumber(value)} ${getUnitLabel(unit)}`;
 
         // Convert the value if needed
         const convertedValue = unit !== targetUnit ? 
             UnitSystem.convertUnit(value, unit, targetUnit) : 
             value;
 
-        return `${formatNumber(convertedValue)} ${targetUnit}`;
+        return `${formatNumber(convertedValue)} ${getUnitLabel(targetUnit)}`;
     } catch (error) {
         console.warn(`Error formatting value: ${error.message}`);
-        return `${formatNumber(value)} ${unit}`;
+        return `${formatNumber(value)} ${getUnitLabel(unit)}`;
     }
 }
 

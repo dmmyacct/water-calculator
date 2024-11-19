@@ -225,14 +225,30 @@ function generateTableHeader() {
         table.insertBefore(thead, table.firstChild);
     }
 
-    // Determine which columns to show based on inputs
+    // Create columns array with individual entries for each person/animal
     const columns = [
         { id: 'item', label: 'Item' },
         { id: 'category', label: 'Category' },
-        ...(inputs.adults > 0 ? [{ id: 'adults', label: 'Adults' }] : []),
-        ...(inputs.children > 0 ? [{ id: 'children', label: 'Children' }] : []),
-        ...(inputs.dogs > 0 ? [{ id: 'dogs', label: 'Dogs' }] : []),
-        ...(inputs.cats > 0 ? [{ id: 'cats', label: 'Cats' }] : []),
+        // Create individual columns for each adult
+        ...[...Array(inputs.adults)].map((_, i) => ({
+            id: `adult_${i}`,
+            label: `Adult ${i + 1}`
+        })),
+        // Create individual columns for each child
+        ...[...Array(inputs.children)].map((_, i) => ({
+            id: `child_${i}`,
+            label: `Child ${i + 1}`
+        })),
+        // Create individual columns for each dog
+        ...[...Array(inputs.dogs)].map((_, i) => ({
+            id: `dog_${i}`,
+            label: `Dog ${i + 1}`
+        })),
+        // Create individual columns for each cat
+        ...[...Array(inputs.cats)].map((_, i) => ({
+            id: `cat_${i}`,
+            label: `Cat ${i + 1}`
+        })),
         { id: 'total', label: 'Total Needed' }
     ];
 
@@ -316,10 +332,22 @@ function populateTableRows(supplyList, inputs) {
                 const cells = [
                     `<td>${item.name}</td>`,
                     `<td>${item.category}</td>`,
-                    ...(inputs.adults > 0 ? [`<td>${formatWithUnit(item.perAdult, item.unit)}</td>`] : []),
-                    ...(inputs.children > 0 ? [`<td>${formatWithUnit(item.perChild, item.unit)}</td>`] : []),
-                    ...(inputs.dogs > 0 ? [`<td>${formatWithUnit(item.perDog, item.unit)}</td>`] : []),
-                    ...(inputs.cats > 0 ? [`<td>${formatWithUnit(item.perCat, item.unit)}</td>`] : []),
+                    // Add cells for each adult
+                    ...[...Array(inputs.adults)].map(() => 
+                        `<td>${formatWithUnit(item.perAdult, item.unit)}</td>`
+                    ),
+                    // Add cells for each child
+                    ...[...Array(inputs.children)].map(() => 
+                        `<td>${formatWithUnit(item.perChild, item.unit)}</td>`
+                    ),
+                    // Add cells for each dog
+                    ...[...Array(inputs.dogs)].map(() => 
+                        `<td>${formatWithUnit(item.perDog, item.unit)}</td>`
+                    ),
+                    // Add cells for each cat
+                    ...[...Array(inputs.cats)].map(() => 
+                        `<td>${formatWithUnit(item.perCat, item.unit)}</td>`
+                    ),
                     `<td class="total-column">${formatWithUnit(item.total, item.unit)}</td>`
                 ];
 
